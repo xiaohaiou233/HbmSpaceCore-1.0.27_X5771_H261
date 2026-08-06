@@ -41,9 +41,19 @@ public class EntityLootPod extends Entity {
 	}
 
 	@Override
-	protected void readEntityFromNBT(NBTTagCompound nbt) {}
+	protected void readEntityFromNBT(NBTTagCompound nbt) {
+		// ==== [modpack] persist noClip and size across world reload
+		this.noClip = nbt.getBoolean("noClip");
+		setSize(nbt.hasKey("width") ? nbt.getFloat("width") : 0.9F,
+				nbt.hasKey("height") ? nbt.getFloat("height") : 0.9F);
+	}
 
 	@Override
-	protected void writeEntityToNBT(NBTTagCompound nbt) {}
+	protected void writeEntityToNBT(NBTTagCompound nbt) {
+		// ==== [modpack] persist noClip and size across world reload
+		nbt.setBoolean("noClip", noClip);
+		nbt.setFloat("width", width);
+		nbt.setFloat("height", height);
+	}
 
 }
