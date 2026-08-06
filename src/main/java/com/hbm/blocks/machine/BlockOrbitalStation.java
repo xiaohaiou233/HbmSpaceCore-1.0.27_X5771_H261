@@ -96,18 +96,22 @@ public class BlockOrbitalStation extends BlockDummyable implements IBlockSealabl
 			} else {
 				ItemStack held = player.getHeldItem();
 				if(held != null) {
-					if(held.getItem() == ModItems.rocket_custom && ItemCustomRocket.hasFuel(held)) {
-						station.spawnRocket(held);
-						held.stackSize--;
-					}
-					if(held.getItem() == ModItems.rp_capsule_20 || held.getItem() == ModItems.rp_pod_20) {
-						station.spawnRocket(ItemCustomRocket.build(new RocketStruct(held)));
-						held.stackSize--;
-					}
-					// ==== [modpack] 逃生舱安装（SPAWN 空间站自带）
-					if(held.getItem() == ModItems.escape_pod) {
-						station.spawnEscapePod();
-						held.stackSize--;
+					// ==== [modpack] ORBIT 端口装原版火箭；SPAWN 端口只装逃生舱
+					if(CelestialBody.inOrbit(world)) {
+						if(held.getItem() == ModItems.rocket_custom && ItemCustomRocket.hasFuel(held)) {
+							station.spawnRocket(held);
+							held.stackSize--;
+						}
+						if(held.getItem() == ModItems.rp_capsule_20 || held.getItem() == ModItems.rp_pod_20) {
+							station.spawnRocket(ItemCustomRocket.build(new RocketStruct(held)));
+							held.stackSize--;
+						}
+					} else if(world.provider.dimensionId == SpaceConfig.spawnDimension) {
+						// [modpack] SPAWN：逃生舱安装
+						if(held.getItem() == ModItems.escape_pod) {
+							station.spawnEscapePod();
+							held.stackSize--;
+						}
 					}
 				}
 			}

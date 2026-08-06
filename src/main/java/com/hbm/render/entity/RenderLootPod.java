@@ -16,7 +16,6 @@ public class RenderLootPod extends Render {
 	public void doRender(Entity entity, double x, double y, double z, float f, float interp) {
 		GL11.glPushMatrix();
 		GL11.glTranslated(x, y, z);
-		GL11.glColor4f(1F, 1F, 1F, 1F);
 		bindEntityTexture(entity);
 
 		Tessellator tess = Tessellator.instance;
