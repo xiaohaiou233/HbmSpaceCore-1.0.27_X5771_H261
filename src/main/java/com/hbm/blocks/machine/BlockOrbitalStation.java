@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.blocks.ILookOverlay;
 import com.hbm.blocks.ModBlocks;
+import com.hbm.config.SpaceConfig;
 import com.hbm.dim.CelestialBody;
 import com.hbm.handler.RocketStruct;
 import com.hbm.handler.atmosphere.IBlockSealable;
@@ -54,7 +55,8 @@ public class BlockOrbitalStation extends BlockDummyable implements IBlockSealabl
 
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
-		if(!CelestialBody.inOrbit(world)) return false;
+		// ==== [modpack] 出生维度（SPAWN）放行：空间站等效在轨 Duna，逃生舱停靠/登舱可用
+		if(!CelestialBody.inOrbit(world) && world.provider.dimensionId != SpaceConfig.spawnDimension) return false;
 
 		int[] pos = this.findCore(world, x, y, z);
 
@@ -81,8 +83,11 @@ public class BlockOrbitalStation extends BlockDummyable implements IBlockSealabl
 				if(!station.hasRider) {
 					if(player.isSneaking()) {
 						if(player.getHeldItem() == null) {
-							station.despawnRocket();
-							station.giveStoredItems(player);
+							// ==== [modpack] 出生维度逃生舱禁 shift+右键取出
+							if(world.provider.dimensionId != SpaceConfig.spawnDimension) {
+								station.despawnRocket();
+								station.giveStoredItems(player);
+							}
 						}
 					} else {
 						station.enterCapsule(player);
@@ -97,6 +102,11 @@ public class BlockOrbitalStation extends BlockDummyable implements IBlockSealabl
 					}
 					if(held.getItem() == ModItems.rp_capsule_20 || held.getItem() == ModItems.rp_pod_20) {
 						station.spawnRocket(ItemCustomRocket.build(new RocketStruct(held)));
+						held.stackSize--;
+					}
+					// ==== [modpack] 逃生舱安装（SPAWN 空间站自带）
+					if(held.getItem() == ModItems.escape_pod) {
+						station.spawnEscapePod();
 						held.stackSize--;
 					}
 				}
@@ -135,7 +145,8 @@ public class BlockOrbitalStation extends BlockDummyable implements IBlockSealabl
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void printHook(Pre event, World world, int x, int y, int z) {
-		if(!CelestialBody.inOrbit(world)) {
+		// ==== [modpack] 出生维度不显示 "!!NO ORBIT!!"
+		if(!CelestialBody.inOrbit(world) && world.provider.dimensionId != SpaceConfig.spawnDimension) {
 			List<String> text = new ArrayList<String>();
 			text.add("&[" + (BobMathUtil.getBlink() ? 0xff0000 : 0xffff00) + "&]! ! ! " + I18nUtil.resolveKey("atmosphere.noOrbit") + " ! ! !");
 			ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);

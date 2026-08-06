@@ -4,9 +4,11 @@ import java.util.Stack;
 import java.util.stream.IntStream;
 
 import com.hbm.blocks.ModBlocks;
+import com.hbm.config.SpaceConfig;
 import com.hbm.dim.CelestialBody;
 import com.hbm.dim.SolarSystem;
 import com.hbm.dim.orbit.OrbitalStation;
+import com.hbm.entity.missile.EntityEscapePod;
 import com.hbm.entity.missile.EntityRideableRocket;
 import com.hbm.entity.missile.EntityRideableRocket.RocketState;
 import com.hbm.handler.RocketStruct;
@@ -59,6 +61,11 @@ public class TileEntityOrbitalStation extends TileEntityMachineBase implements I
 
 	@Override
 	public void updateEntity() {
+		// ==== [modpack] 出生维度：等效在轨 Duna，跳过全局站系统，只管理逃生舱停靠
+		if(worldObj.provider.dimensionId == SpaceConfig.spawnDimension) {
+			updateSpawn();
+			return;
+		}
 		if(!CelestialBody.inOrbit(worldObj)) return;
 
 		if(!worldObj.isRemote) {
@@ -214,6 +221,42 @@ public class TileEntityOrbitalStation extends TileEntityMachineBase implements I
 
 		dockRocket(rocket);
 	}
+	// [modpack] 出生维度接口：逃生舱免燃料，停靠即 AWAITING（可登舱发射），发射(UNDOCKING)/死亡后解除停靠
+	private void updateSpawn() {
+		if(!worldObj.isRemote) {
+			if(docked != null && (docked.isDead || docked.getState() == RocketState.UNDOCKING)) {
+				undockRocket();
+			}
+			if(docked != null && docked.getState() != RocketState.AWAITING) {
+				docked.setState(RocketState.AWAITING);
+			}
+			hasDocked = docked != null;
+			hasRider = hasDocked && docked.riddenByEntity != null;
+			needsFuel = false;
+			hasFuel = false;
+			this.networkPackNT(OrbitalStation.STATION_SIZE / 2);
+		} else {
+			prevRot = rot;
+			if(hasDocked) {
+				rot += 2.25F;
+				if(rot > 90) rot = 90;
+			} else {
+				rot -= 2.25F;
+				if(rot < 0) rot = 0;
+			}
+		}
+	}
+
+	// [modpack] 停靠逃生舱
+	public void spawnEscapePod() {
+		if(docked != null) return;
+		EntityEscapePod pod = new EntityEscapePod(worldObj, xCoord + 0.5F, yCoord + 1.5F, zCoord + 0.5F);
+		pod.posY -= pod.height;
+		pod.setState(RocketState.AWAITING);
+		worldObj.spawnEntityInWorld(pod);
+		docked = pod;
+	}
+
 
 	public EntityRideableRocket getDocked() {
 		return docked;
