@@ -525,6 +525,11 @@ public class CelestialBody {
 	}
 
 	public static Target getTarget(World world, int x, int z) {
+		// ==== [modpack] 出生维度等效"在轨 Duna"：空间站绕 Duna 飞 → 火箭飞行判定 from.body==to.body，
+		// 逃生舱/着陆器走原版 beginLandingSequence 直降路径（同"站悬停 kerbin 上空填 kerbin 盘直降"），不经过 ORBIT
+		if(world.provider.dimensionId == SpaceConfig.spawnDimension) {
+			return new Target(getBody("duna"), true, true);
+		}
 		if(inOrbit(world)) {
 			OrbitalStation station = !world.isRemote ? OrbitalStation.getStationFromPosition(x, z) : OrbitalStation.clientStation;
 			return new Target(station.orbiting, true, station.hasStation);
