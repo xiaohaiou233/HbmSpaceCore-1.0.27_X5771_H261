@@ -710,6 +710,8 @@ public class ClientProxy extends ServerProxy {
 		RenderingRegistry.registerEntityRenderingHandler(EntityRideableRocketDummy.class, new RenderEmpty());
 		// ==== [modpack] 降落仓占位渲染
 		RenderingRegistry.registerEntityRenderingHandler(EntityLootPod.class, new RenderLootPod());
+		// ==== [modpack] 逃生舱渲染（复用原版火箭渲染）
+		RenderingRegistry.registerEntityRenderingHandler(EntityEscapePod.class, new RenderRocketCustom());
 		RenderingRegistry.registerEntityRenderingHandler(EntityMissileGeneric.class, new RenderMissileGeneric());
 		RenderingRegistry.registerEntityRenderingHandler(EntityMissileDecoy.class, new RenderMissileGeneric());
 		RenderingRegistry.registerEntityRenderingHandler(EntityMissileStealth.class, new RenderMissileGeneric());

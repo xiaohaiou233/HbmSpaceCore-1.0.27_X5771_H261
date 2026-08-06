@@ -115,6 +115,8 @@ public class EntityMappings {
 		addEntity(EntityRideableRocketDummy.class, "entity_rideable_rocket_dummy", 1000);
 		// ==== [modpack] 降落仓残骸
 		addEntity(EntityLootPod.class, "entity_loot_pod", 1000);
+		// ==== [modpack] 逃生舱（继承 EntityRideableRocket，复用登陆舱降落）
+		addEntity(EntityEscapePod.class, "entity_escape_pod", 1000);
 		addEntity(EntityBalefire.class, "entity_balefire", 1000);
 		addEntity(EntityTom.class, "entity_tom_the_moonstone", 1000);
 		addEntity(EntityTomBlast.class, "entity_tom_bust", 1000);
