@@ -113,6 +113,8 @@ public class EntityMappings {
 		addEntity(EntityMissileCustom.class, "entity_custom_missile", 1000);
 		addEntity(EntityRideableRocket.class, "entity_rideable_rocket", 1000);
 		addEntity(EntityRideableRocketDummy.class, "entity_rideable_rocket_dummy", 1000);
+		// ==== [modpack] 降落仓残骸
+		addEntity(EntityLootPod.class, "entity_loot_pod", 1000);
 		addEntity(EntityBalefire.class, "entity_balefire", 1000);
 		addEntity(EntityTom.class, "entity_tom_the_moonstone", 1000);
 		addEntity(EntityTomBlast.class, "entity_tom_bust", 1000);
