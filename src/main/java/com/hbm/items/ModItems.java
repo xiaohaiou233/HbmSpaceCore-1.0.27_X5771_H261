@@ -2174,6 +2174,7 @@ public class ModItems {
 
 	public static Item wand;
 	public static Item wand_s;
+	public static Item escape_pod;
 	public static Item wand_d;
 	public static Item wand_time;
 
@@ -4235,6 +4236,7 @@ public class ModItems {
 		rebar_placer = new ItemRebarPlacer().setUnlocalizedName("rebar_placer").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab).setTextureName(RefStrings.MODID + ":rebar_placer");
 		wand = new ItemWand().setUnlocalizedName("wand_k").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab).setFull3D().setTextureName(RefStrings.MODID + ":wand");
 		wand_s = new ItemWandS().setUnlocalizedName("wand_s").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab).setFull3D().setTextureName(RefStrings.MODID + ":wand_s");
+		escape_pod = new ItemEscapePod().setUnlocalizedName("escape_pod").setMaxStackSize(1).setCreativeTab(MainRegistry.hbmCoreTab).setFull3D().setTextureName(RefStrings.MODID + ":mp_warhead");
 		wand_d = new ItemWandD().setUnlocalizedName("wand_d").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab).setFull3D().setTextureName(RefStrings.MODID + ":wand_d");
 		wand_time = new ItemWandTime().setUnlocalizedName("wand_time").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab).setFull3D().setTextureName(RefStrings.MODID + ":wand_time");
 
@@ -7054,6 +7056,7 @@ public class ModItems {
 		GameRegistry.registerItem(rebar_placer, rebar_placer.getUnlocalizedName());
 		GameRegistry.registerItem(wand, wand.getUnlocalizedName());
 		GameRegistry.registerItem(wand_s, wand_s.getUnlocalizedName());
+		GameRegistry.registerItem(escape_pod, escape_pod.getUnlocalizedName());
 		GameRegistry.registerItem(wand_d, wand_d.getUnlocalizedName());
 		GameRegistry.registerItem(wand_time, wand_time.getUnlocalizedName());
 		GameRegistry.registerItem(structure_single, structure_single.getUnlocalizedName());

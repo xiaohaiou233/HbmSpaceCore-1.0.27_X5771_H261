@@ -168,6 +168,7 @@ public class MainRegistry {
 	public static CreativeTabs missileTab = new MissileTab(CreativeTabs.getNextID(), "tabMissile");				// missiles, satellites
 	public static CreativeTabs weaponTab = new WeaponTab(CreativeTabs.getNextID(), "tabWeapon");				// turrets, weapons, ammo
 	public static CreativeTabs consumableTab = new ConsumableTab(CreativeTabs.getNextID(), "tabConsumable");	// drinks, kits, tools
+	public static CreativeTabs hbmCoreTab = new HbmCoreTab(CreativeTabs.getNextID(), "tabHbmCore"); // [modpack] HBMCore 创造页
 
 	// Statistics
 	public static StatBase statLegendary;

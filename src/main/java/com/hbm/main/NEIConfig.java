@@ -93,6 +93,9 @@ public class NEIConfig implements IConfigureNEI {
 		API.hideItem(new ItemStack(ModItems.rocket_custom));
 		API.hideItem(new ItemStack(ModBlocks.orbital_station));
 
+		// ==== [modpack] 逃生舱是开局一次性道具，NEI 默认隐藏
+		API.hideItem(new ItemStack(ModItems.escape_pod));
+
 		API.hideItem(new ItemStack(ModBlocks.conveyor));
 		API.hideItem(new ItemStack(ModBlocks.conveyor_chute));
 		API.hideItem(new ItemStack(ModBlocks.conveyor_lift));
