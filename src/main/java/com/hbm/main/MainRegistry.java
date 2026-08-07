@@ -5,6 +5,7 @@ import com.hbm.blocks.BlockEnums.EnumStoneType;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.generic.BlockToolConversion;
 import com.hbm.commands.*;
+import com.hbm.compat.ModCompatRegistry;
 import com.hbm.config.*;
 import com.hbm.crafting.RodRecipes;
 import com.hbm.creativetabs.*;
@@ -261,6 +262,10 @@ public class MainRegistry {
 
 		if(!configHbmDir.exists()) configHbmDir.mkdir();
 		Identity.init(configDir);
+
+		// ==== [modpack] 第三方 mod 兼容/修复:启动时自动修正配置(AE2 陨石文件IO / WCT 版本检查, B6)
+		ModCompatRegistry.registerAll();
+		ModCompatRegistry.applyAll(configDir);
 
 		logger.info("Let us celebrate the fact that the logger finally works again!");
 
@@ -674,6 +679,7 @@ public class MainRegistry {
 		CommandWikiRender.register();
 
 		WorldTypeTeleport.init();
+		WorldTypeTeleport.simplifyWorldTypes(); // [modpack] 世界创建界面只留主世界（Default）
 
 		//ExplosionTests.runTest();
 	}
@@ -747,6 +753,7 @@ public class MainRegistry {
 		event.registerServerCommand(new CommandCustomize());
 		event.registerServerCommand(new CommandWikiRender()); // TODO: make this shitfuck be clientside
 		event.registerServerCommand(new CommandReapNetworks());
+		event.registerServerCommand(new CommandHbmTest()); // [modpack] 测试指令（触发降落/重生测试）
 		ArcFurnaceRecipes.registerFurnaceSmeltables(); // because we have to wait for other mods to take their merry ass time to register recipes
 	}
 
