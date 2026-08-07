@@ -35,7 +35,8 @@ public final class CompatConfigUtil {
 
 		try {
 			List<String> lines = new ArrayList<>(Files.readAllLines(cfgFile.toPath(), StandardCharsets.UTF_8));
-			String keyPattern = "^(" + Pattern.quote(key) + "\\s*=\\s*).*$";
+			// group 1 = 行首空白 + key + 等号及周围空白;group 2 = "=" 后的值(不含行尾空白)
+			String keyPattern = "^(\\s*" + Pattern.quote(key) + "\\s*=\\s*)(.*?)\\s*$";
 			Pattern pat = Pattern.compile(keyPattern);
 
 			int matchedIndex = -1;
@@ -52,13 +53,15 @@ public final class CompatConfigUtil {
 			}
 
 			String current = lines.get(matchedIndex);
-			if (current.contains(expectedValue)) {
+			java.util.regex.Matcher m = pat.matcher(current);
+			// 幂等:精确比较 "=" 后的值,避免行内注释含该值 / 值前缀(如 =10 vs "1")误判
+			if (m.matches() && m.group(2).trim().equals(expectedValue)) {
 				logger.info("[hbmcore][compat] {} in {} already = {}", key, cfgFile.getName(), expectedValue);
-				return true; // 幂等
+				return true;
 			}
 
-			// 替换值:保留 "B:MeteoriteWorldGen=" 前缀
-			String newLine = pat.matcher(current).replaceFirst("$1" + expectedValue);
+			// 替换值:保留 group 1(行首空白 + "B:MeteoriteWorldGen" + "=" + 周围空白),写入新值
+			String newLine = m.group(1) + expectedValue;
 			lines.set(matchedIndex, newLine);
 
 			// 若该 key 行上方还没有 [hbmcore] 注释,则插入
