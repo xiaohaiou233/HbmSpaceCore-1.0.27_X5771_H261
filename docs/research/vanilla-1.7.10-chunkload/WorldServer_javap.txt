@@ -1,0 +1,2639 @@
+Compiled from "WorldServer.java"
+public class net.minecraft.world.WorldServer extends net.minecraft.world.World {
+  private static final org.apache.logging.log4j.Logger logger;
+
+  private final net.minecraft.server.MinecraftServer mcServer;
+
+  private final net.minecraft.entity.EntityTracker theEntityTracker;
+
+  private final net.minecraft.server.management.PlayerManager thePlayerManager;
+
+  private java.util.Set pendingTickListEntriesHashSet;
+
+  private java.util.TreeSet pendingTickListEntriesTreeSet;
+
+  public net.minecraft.world.gen.ChunkProviderServer theChunkProviderServer;
+
+  public boolean levelSaving;
+
+  private boolean allPlayersSleeping;
+
+  private int updateEntityTick;
+
+  private final net.minecraft.world.Teleporter worldTeleporter;
+
+  private final net.minecraft.world.SpawnerAnimals animalSpawner;
+
+  private net.minecraft.world.WorldServer$ServerBlockEventList[] field_147490_S;
+
+  private int blockEventCacheIndex;
+
+  public static final net.minecraft.util.WeightedRandomChestContent[] bonusChestContent;
+
+  private java.util.List pendingTickListEntriesThisTick;
+
+  private net.minecraft.util.IntHashMap entityIdMap;
+
+  private static final java.lang.String __OBFID;
+
+  protected java.util.Set<net.minecraft.world.ChunkCoordIntPair> doneChunks;
+
+  public java.util.List<net.minecraft.world.Teleporter> customTeleporters;
+
+  public net.minecraft.world.WorldServer(net.minecraft.server.MinecraftServer, net.minecraft.world.storage.ISaveHandler, java.lang.String, int, net.minecraft.world.WorldSettings, net.minecraft.profiler.Profiler);
+    Code:
+       0: aload_0
+       1: aload_2
+       2: aload_3
+       3: aload         5
+       5: iload         4
+       7: invokestatic  #71                 // Method net/minecraft/world/WorldProvider.getProviderForDimension:(I)Lnet/minecraft/world/WorldProvider;
+      10: aload         6
+      12: invokespecial #74                 // Method net/minecraft/world/World."<init>":(Lnet/minecraft/world/storage/ISaveHandler;Ljava/lang/String;Lnet/minecraft/world/WorldSettings;Lnet/minecraft/world/WorldProvider;Lnet/minecraft/profiler/Profiler;)V
+      15: aload_0
+      16: new           #76                 // class net/minecraft/world/SpawnerAnimals
+      19: dup
+      20: invokespecial #79                 // Method net/minecraft/world/SpawnerAnimals."<init>":()V
+      23: putfield      #81                 // Field animalSpawner:Lnet/minecraft/world/SpawnerAnimals;
+      26: aload_0
+      27: iconst_2
+      28: anewarray     #7                  // class net/minecraft/world/WorldServer$ServerBlockEventList
+      31: dup
+      32: iconst_0
+      33: new           #7                  // class net/minecraft/world/WorldServer$ServerBlockEventList
+      36: dup
+      37: aconst_null
+      38: invokespecial #84                 // Method net/minecraft/world/WorldServer$ServerBlockEventList."<init>":(Ljava/lang/Object;)V
+      41: aastore
+      42: dup
+      43: iconst_1
+      44: new           #7                  // class net/minecraft/world/WorldServer$ServerBlockEventList
+      47: dup
+      48: aconst_null
+      49: invokespecial #84                 // Method net/minecraft/world/WorldServer$ServerBlockEventList."<init>":(Ljava/lang/Object;)V
+      52: aastore
+      53: putfield      #86                 // Field field_147490_S:[Lnet/minecraft/world/WorldServer$ServerBlockEventList;
+      56: aload_0
+      57: new           #88                 // class java/util/ArrayList
+      60: dup
+      61: invokespecial #89                 // Method java/util/ArrayList."<init>":()V
+      64: putfield      #91                 // Field pendingTickListEntriesThisTick:Ljava/util/List;
+      67: aload_0
+      68: new           #93                 // class java/util/HashSet
+      71: dup
+      72: invokespecial #94                 // Method java/util/HashSet."<init>":()V
+      75: putfield      #96                 // Field doneChunks:Ljava/util/Set;
+      78: aload_0
+      79: new           #88                 // class java/util/ArrayList
+      82: dup
+      83: invokespecial #89                 // Method java/util/ArrayList."<init>":()V
+      86: putfield      #98                 // Field customTeleporters:Ljava/util/List;
+      89: aload_0
+      90: aload_1
+      91: putfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+      94: aload_0
+      95: new           #102                // class net/minecraft/entity/EntityTracker
+      98: dup
+      99: aload_0
+     100: invokespecial #105                // Method net/minecraft/entity/EntityTracker."<init>":(Lnet/minecraft/world/WorldServer;)V
+     103: putfield      #107                // Field theEntityTracker:Lnet/minecraft/entity/EntityTracker;
+     106: aload_0
+     107: new           #109                // class net/minecraft/server/management/PlayerManager
+     110: dup
+     111: aload_0
+     112: invokespecial #110                // Method net/minecraft/server/management/PlayerManager."<init>":(Lnet/minecraft/world/WorldServer;)V
+     115: putfield      #112                // Field thePlayerManager:Lnet/minecraft/server/management/PlayerManager;
+     118: aload_0
+     119: getfield      #114                // Field entityIdMap:Lnet/minecraft/util/IntHashMap;
+     122: ifnonnull     136
+     125: aload_0
+     126: new           #116                // class net/minecraft/util/IntHashMap
+     129: dup
+     130: invokespecial #117                // Method net/minecraft/util/IntHashMap."<init>":()V
+     133: putfield      #114                // Field entityIdMap:Lnet/minecraft/util/IntHashMap;
+     136: aload_0
+     137: getfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+     140: ifnonnull     154
+     143: aload_0
+     144: new           #93                 // class java/util/HashSet
+     147: dup
+     148: invokespecial #94                 // Method java/util/HashSet."<init>":()V
+     151: putfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+     154: aload_0
+     155: getfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+     158: ifnonnull     172
+     161: aload_0
+     162: new           #133                // class java/util/TreeSet
+     165: dup
+     166: invokespecial #134                // Method java/util/TreeSet."<init>":()V
+     169: putfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+     172: aload_0
+     173: new           #136                // class net/minecraft/world/Teleporter
+     176: dup
+     177: aload_0
+     178: invokespecial #137                // Method net/minecraft/world/Teleporter."<init>":(Lnet/minecraft/world/WorldServer;)V
+     181: putfield      #139                // Field worldTeleporter:Lnet/minecraft/world/Teleporter;
+     184: aload_0
+     185: new           #141                // class net/minecraft/scoreboard/ServerScoreboard
+     188: dup
+     189: aload_1
+     190: invokespecial #144                // Method net/minecraft/scoreboard/ServerScoreboard."<init>":(Lnet/minecraft/server/MinecraftServer;)V
+     193: putfield      #148                // Field worldScoreboard:Lnet/minecraft/scoreboard/Scoreboard;
+     196: aload_0
+     197: getfield      #152                // Field mapStorage:Lnet/minecraft/world/storage/MapStorage;
+     200: ldc           #154                // class net/minecraft/scoreboard/ScoreboardSaveData
+     202: ldc           #156                // String scoreboard
+     204: invokevirtual #162                // Method net/minecraft/world/storage/MapStorage.loadData:(Ljava/lang/Class;Ljava/lang/String;)Lnet/minecraft/world/WorldSavedData;
+     207: checkcast     #154                // class net/minecraft/scoreboard/ScoreboardSaveData
+     210: astore        7
+     212: aload         7
+     214: ifnonnull     237
+     217: new           #154                // class net/minecraft/scoreboard/ScoreboardSaveData
+     220: dup
+     221: invokespecial #163                // Method net/minecraft/scoreboard/ScoreboardSaveData."<init>":()V
+     224: astore        7
+     226: aload_0
+     227: getfield      #152                // Field mapStorage:Lnet/minecraft/world/storage/MapStorage;
+     230: ldc           #156                // String scoreboard
+     232: aload         7
+     234: invokevirtual #167                // Method net/minecraft/world/storage/MapStorage.setData:(Ljava/lang/String;Lnet/minecraft/world/WorldSavedData;)V
+     237: aload_0
+     238: instanceof    #169                // class net/minecraft/world/WorldServerMulti
+     241: ifne          253
+     244: aload         7
+     246: aload_0
+     247: getfield      #148                // Field worldScoreboard:Lnet/minecraft/scoreboard/Scoreboard;
+     250: invokevirtual #173                // Method net/minecraft/scoreboard/ScoreboardSaveData.func_96499_a:(Lnet/minecraft/scoreboard/Scoreboard;)V
+     253: aload_0
+     254: getfield      #148                // Field worldScoreboard:Lnet/minecraft/scoreboard/Scoreboard;
+     257: checkcast     #141                // class net/minecraft/scoreboard/ServerScoreboard
+     260: aload         7
+     262: invokevirtual #177                // Method net/minecraft/scoreboard/ServerScoreboard.func_96547_a:(Lnet/minecraft/scoreboard/ScoreboardSaveData;)V
+     265: iload         4
+     267: aload_0
+     268: invokestatic  #183                // Method net/minecraftforge/common/DimensionManager.setWorld:(ILnet/minecraft/world/WorldServer;)V
+     271: return
+
+  public void tick();
+    Code:
+       0: aload_0
+       1: invokespecial #199                // Method net/minecraft/world/World.tick:()V
+       4: aload_0
+       5: invokevirtual #203                // Method getWorldInfo:()Lnet/minecraft/world/storage/WorldInfo;
+       8: invokevirtual #209                // Method net/minecraft/world/storage/WorldInfo.isHardcoreModeEnabled:()Z
+      11: ifeq          31
+      14: aload_0
+      15: getfield      #213                // Field difficultySetting:Lnet/minecraft/world/EnumDifficulty;
+      18: getstatic     #218                // Field net/minecraft/world/EnumDifficulty.HARD:Lnet/minecraft/world/EnumDifficulty;
+      21: if_acmpeq     31
+      24: aload_0
+      25: getstatic     #218                // Field net/minecraft/world/EnumDifficulty.HARD:Lnet/minecraft/world/EnumDifficulty;
+      28: putfield      #213                // Field difficultySetting:Lnet/minecraft/world/EnumDifficulty;
+      31: aload_0
+      32: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+      35: getfield      #226                // Field net/minecraft/world/WorldProvider.worldChunkMgr:Lnet/minecraft/world/biome/WorldChunkManager;
+      38: invokevirtual #231                // Method net/minecraft/world/biome/WorldChunkManager.cleanupCache:()V
+      41: aload_0
+      42: invokevirtual #234                // Method areAllPlayersAsleep:()Z
+      45: ifeq          90
+      48: aload_0
+      49: invokevirtual #238                // Method getGameRules:()Lnet/minecraft/world/GameRules;
+      52: ldc           #240                // String doDaylightCycle
+      54: invokevirtual #246                // Method net/minecraft/world/GameRules.getGameRuleBooleanValue:(Ljava/lang/String;)Z
+      57: ifeq          86
+      60: aload_0
+      61: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      64: invokevirtual #254                // Method net/minecraft/world/storage/WorldInfo.getWorldTime:()J
+      67: ldc2_w        #255                // long 24000l
+      70: ladd
+      71: lstore_1
+      72: aload_0
+      73: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      76: lload_1
+      77: lload_1
+      78: ldc2_w        #255                // long 24000l
+      81: lrem
+      82: lsub
+      83: invokevirtual #260                // Method net/minecraft/world/storage/WorldInfo.setWorldTime:(J)V
+      86: aload_0
+      87: invokevirtual #263                // Method wakeAllPlayers:()V
+      90: aload_0
+      91: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+      94: ldc_w         #268                // String mobSpawner
+      97: invokevirtual #272                // Method net/minecraft/profiler/Profiler.startSection:(Ljava/lang/String;)V
+     100: aload_0
+     101: invokevirtual #238                // Method getGameRules:()Lnet/minecraft/world/GameRules;
+     104: ldc_w         #274                // String doMobSpawning
+     107: invokevirtual #246                // Method net/minecraft/world/GameRules.getGameRuleBooleanValue:(Ljava/lang/String;)Z
+     110: ifeq          151
+     113: aload_0
+     114: getfield      #81                 // Field animalSpawner:Lnet/minecraft/world/SpawnerAnimals;
+     117: aload_0
+     118: aload_0
+     119: getfield      #277                // Field spawnHostileMobs:Z
+     122: aload_0
+     123: getfield      #280                // Field spawnPeacefulMobs:Z
+     126: aload_0
+     127: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+     130: invokevirtual #283                // Method net/minecraft/world/storage/WorldInfo.getWorldTotalTime:()J
+     133: ldc2_w        #284                // long 400l
+     136: lrem
+     137: lconst_0
+     138: lcmp
+     139: ifne          146
+     142: iconst_1
+     143: goto          147
+     146: iconst_0
+     147: invokevirtual #289                // Method net/minecraft/world/SpawnerAnimals.findChunksForSpawning:(Lnet/minecraft/world/WorldServer;ZZZ)I
+     150: pop
+     151: aload_0
+     152: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     155: ldc_w         #291                // String chunkSource
+     158: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     161: aload_0
+     162: getfield      #298                // Field chunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+     165: invokeinterface #303,  1          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.unloadQueuedChunks:()Z
+     170: pop
+     171: aload_0
+     172: fconst_1
+     173: invokevirtual #307                // Method calculateSkylightSubtracted:(F)I
+     176: istore_1
+     177: iload_1
+     178: aload_0
+     179: getfield      #310                // Field skylightSubtracted:I
+     182: if_icmpeq     190
+     185: aload_0
+     186: iload_1
+     187: putfield      #310                // Field skylightSubtracted:I
+     190: aload_0
+     191: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+     194: aload_0
+     195: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+     198: invokevirtual #283                // Method net/minecraft/world/storage/WorldInfo.getWorldTotalTime:()J
+     201: lconst_1
+     202: ladd
+     203: invokevirtual #313                // Method net/minecraft/world/storage/WorldInfo.incrementTotalWorldTime:(J)V
+     206: aload_0
+     207: invokevirtual #238                // Method getGameRules:()Lnet/minecraft/world/GameRules;
+     210: ldc           #240                // String doDaylightCycle
+     212: invokevirtual #246                // Method net/minecraft/world/GameRules.getGameRuleBooleanValue:(Ljava/lang/String;)Z
+     215: ifeq          234
+     218: aload_0
+     219: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+     222: aload_0
+     223: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+     226: invokevirtual #254                // Method net/minecraft/world/storage/WorldInfo.getWorldTime:()J
+     229: lconst_1
+     230: ladd
+     231: invokevirtual #260                // Method net/minecraft/world/storage/WorldInfo.setWorldTime:(J)V
+     234: aload_0
+     235: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     238: ldc_w         #315                // String tickPending
+     241: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     244: aload_0
+     245: iconst_0
+     246: invokevirtual #319                // Method tickUpdates:(Z)Z
+     249: pop
+     250: aload_0
+     251: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     254: ldc_w         #321                // String tickBlocks
+     257: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     260: aload_0
+     261: invokevirtual #324                // Method func_147456_g:()V
+     264: aload_0
+     265: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     268: ldc_w         #326                // String chunkMap
+     271: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     274: aload_0
+     275: getfield      #112                // Field thePlayerManager:Lnet/minecraft/server/management/PlayerManager;
+     278: invokevirtual #329                // Method net/minecraft/server/management/PlayerManager.updatePlayerInstances:()V
+     281: aload_0
+     282: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     285: ldc_w         #331                // String village
+     288: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     291: aload_0
+     292: getfield      #335                // Field villageCollectionObj:Lnet/minecraft/village/VillageCollection;
+     295: invokevirtual #338                // Method net/minecraft/village/VillageCollection.tick:()V
+     298: aload_0
+     299: getfield      #342                // Field villageSiegeObj:Lnet/minecraft/village/VillageSiege;
+     302: invokevirtual #345                // Method net/minecraft/village/VillageSiege.tick:()V
+     305: aload_0
+     306: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     309: ldc_w         #347                // String portalForcer
+     312: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     315: aload_0
+     316: getfield      #139                // Field worldTeleporter:Lnet/minecraft/world/Teleporter;
+     319: aload_0
+     320: invokevirtual #350                // Method getTotalWorldTime:()J
+     323: invokevirtual #353                // Method net/minecraft/world/Teleporter.removeStalePortalLocations:(J)V
+     326: aload_0
+     327: getfield      #98                 // Field customTeleporters:Ljava/util/List;
+     330: invokeinterface #359,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     335: astore_2
+     336: aload_2
+     337: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     342: ifeq          366
+     345: aload_2
+     346: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     351: checkcast     #136                // class net/minecraft/world/Teleporter
+     354: astore_3
+     355: aload_3
+     356: aload_0
+     357: invokevirtual #350                // Method getTotalWorldTime:()J
+     360: invokevirtual #353                // Method net/minecraft/world/Teleporter.removeStalePortalLocations:(J)V
+     363: goto          336
+     366: aload_0
+     367: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     370: invokevirtual #371                // Method net/minecraft/profiler/Profiler.endSection:()V
+     373: aload_0
+     374: invokespecial #374                // Method func_147488_Z:()V
+     377: return
+
+  public net.minecraft.world.biome.BiomeGenBase$SpawnListEntry spawnRandomCreature(net.minecraft.entity.EnumCreatureType, int, int, int);
+    Code:
+       0: aload_0
+       1: invokevirtual #386                // Method getChunkProvider:()Lnet/minecraft/world/chunk/IChunkProvider;
+       4: aload_1
+       5: iload_2
+       6: iload_3
+       7: iload         4
+       9: invokeinterface #390,  5          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.getPossibleCreatures:(Lnet/minecraft/entity/EnumCreatureType;III)Ljava/util/List;
+      14: astore        5
+      16: aload_0
+      17: aload_1
+      18: iload_2
+      19: iload_3
+      20: iload         4
+      22: aload         5
+      24: invokestatic  #396                // Method net/minecraftforge/event/ForgeEventFactory.getPotentialSpawns:(Lnet/minecraft/world/WorldServer;Lnet/minecraft/entity/EnumCreatureType;IIILjava/util/List;)Ljava/util/List;
+      27: astore        5
+      29: aload         5
+      31: ifnull        59
+      34: aload         5
+      36: invokeinterface #399,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+      41: ifne          59
+      44: aload_0
+      45: getfield      #403                // Field rand:Ljava/util/Random;
+      48: aload         5
+      50: invokestatic  #407                // Method net/minecraft/util/WeightedRandom.getRandomItem:(Ljava/util/Random;Ljava/util/Collection;)Lnet/minecraft/util/WeightedRandom$Item;
+      53: checkcast     #10                 // class net/minecraft/world/biome/BiomeGenBase$SpawnListEntry
+      56: goto          60
+      59: aconst_null
+      60: areturn
+
+  public void updateAllPlayersSleepingFlag();
+    Code:
+       0: aload_0
+       1: aload_0
+       2: getfield      #417                // Field playerEntities:Ljava/util/List;
+       5: invokeinterface #399,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+      10: ifne          17
+      13: iconst_1
+      14: goto          18
+      17: iconst_0
+      18: putfield      #419                // Field allPlayersSleeping:Z
+      21: aload_0
+      22: getfield      #417                // Field playerEntities:Ljava/util/List;
+      25: invokeinterface #359,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      30: astore_1
+      31: aload_1
+      32: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      37: ifeq          68
+      40: aload_1
+      41: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      46: checkcast     #421                // class net/minecraft/entity/player/EntityPlayer
+      49: astore_2
+      50: aload_2
+      51: invokevirtual #424                // Method net/minecraft/entity/player/EntityPlayer.isPlayerSleeping:()Z
+      54: ifne          65
+      57: aload_0
+      58: iconst_0
+      59: putfield      #419                // Field allPlayersSleeping:Z
+      62: goto          68
+      65: goto          31
+      68: return
+
+  protected void wakeAllPlayers();
+    Code:
+       0: aload_0
+       1: iconst_0
+       2: putfield      #419                // Field allPlayersSleeping:Z
+       5: aload_0
+       6: getfield      #417                // Field playerEntities:Ljava/util/List;
+       9: invokeinterface #359,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      14: astore_1
+      15: aload_1
+      16: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      21: ifeq          51
+      24: aload_1
+      25: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      30: checkcast     #421                // class net/minecraft/entity/player/EntityPlayer
+      33: astore_2
+      34: aload_2
+      35: invokevirtual #424                // Method net/minecraft/entity/player/EntityPlayer.isPlayerSleeping:()Z
+      38: ifeq          48
+      41: aload_2
+      42: iconst_0
+      43: iconst_0
+      44: iconst_1
+      45: invokevirtual #430                // Method net/minecraft/entity/player/EntityPlayer.wakeUpPlayer:(ZZZ)V
+      48: goto          15
+      51: aload_0
+      52: invokespecial #433                // Method resetRainAndThunder:()V
+      55: return
+
+  private void resetRainAndThunder();
+    Code:
+       0: aload_0
+       1: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+       4: invokevirtual #434                // Method net/minecraft/world/WorldProvider.resetRainAndThunder:()V
+       7: return
+
+  public boolean areAllPlayersAsleep();
+    Code:
+       0: aload_0
+       1: getfield      #419                // Field allPlayersSleeping:Z
+       4: ifeq          54
+       7: aload_0
+       8: getfield      #437                // Field isRemote:Z
+      11: ifne          54
+      14: aload_0
+      15: getfield      #417                // Field playerEntities:Ljava/util/List;
+      18: invokeinterface #359,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      23: astore_1
+      24: aload_1
+      25: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      30: ifne          35
+      33: iconst_1
+      34: ireturn
+      35: aload_1
+      36: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      41: checkcast     #421                // class net/minecraft/entity/player/EntityPlayer
+      44: astore_2
+      45: aload_2
+      46: invokevirtual #440                // Method net/minecraft/entity/player/EntityPlayer.isPlayerFullyAsleep:()Z
+      49: ifne          24
+      52: iconst_0
+      53: ireturn
+      54: iconst_0
+      55: ireturn
+
+  public void setSpawnLocation();
+    Code:
+       0: aload_0
+       1: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+       4: invokevirtual #449                // Method net/minecraft/world/storage/WorldInfo.getSpawnY:()I
+       7: ifgt          19
+      10: aload_0
+      11: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      14: bipush        64
+      16: invokevirtual #453                // Method net/minecraft/world/storage/WorldInfo.setSpawnY:(I)V
+      19: aload_0
+      20: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      23: invokevirtual #456                // Method net/minecraft/world/storage/WorldInfo.getSpawnX:()I
+      26: istore_1
+      27: aload_0
+      28: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      31: invokevirtual #459                // Method net/minecraft/world/storage/WorldInfo.getSpawnZ:()I
+      34: istore_2
+      35: iconst_0
+      36: istore_3
+      37: aload_0
+      38: iload_1
+      39: iload_2
+      40: invokevirtual #463                // Method getTopBlock:(II)Lnet/minecraft/block/Block;
+      43: invokevirtual #469                // Method net/minecraft/block/Block.getMaterial:()Lnet/minecraft/block/material/Material;
+      46: getstatic     #475                // Field net/minecraft/block/material/Material.air:Lnet/minecraft/block/material/Material;
+      49: if_acmpne     109
+      52: iload_1
+      53: aload_0
+      54: getfield      #403                // Field rand:Ljava/util/Random;
+      57: bipush        8
+      59: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+      62: aload_0
+      63: getfield      #403                // Field rand:Ljava/util/Random;
+      66: bipush        8
+      68: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+      71: isub
+      72: iadd
+      73: istore_1
+      74: iload_2
+      75: aload_0
+      76: getfield      #403                // Field rand:Ljava/util/Random;
+      79: bipush        8
+      81: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+      84: aload_0
+      85: getfield      #403                // Field rand:Ljava/util/Random;
+      88: bipush        8
+      90: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+      93: isub
+      94: iadd
+      95: istore_2
+      96: iinc          3, 1
+      99: iload_3
+     100: sipush        10000
+     103: if_icmpne     37
+     106: goto          109
+     109: aload_0
+     110: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+     113: iload_1
+     114: invokevirtual #484                // Method net/minecraft/world/storage/WorldInfo.setSpawnX:(I)V
+     117: aload_0
+     118: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+     121: iload_2
+     122: invokevirtual #487                // Method net/minecraft/world/storage/WorldInfo.setSpawnZ:(I)V
+     125: return
+
+  protected void func_147456_g();
+    Code:
+       0: aload_0
+       1: invokespecial #489                // Method net/minecraft/world/World.func_147456_g:()V
+       4: iconst_0
+       5: istore_1
+       6: iconst_0
+       7: istore_2
+       8: aload_0
+       9: getfield      #492                // Field activeChunkSet:Ljava/util/Set;
+      12: invokeinterface #495,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+      17: astore_3
+      18: aload_3
+      19: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      24: ifeq          682
+      27: aload_3
+      28: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      33: checkcast     #497                // class net/minecraft/world/ChunkCoordIntPair
+      36: astore        4
+      38: aload         4
+      40: getfield      #500                // Field net/minecraft/world/ChunkCoordIntPair.chunkXPos:I
+      43: bipush        16
+      45: imul
+      46: istore        5
+      48: aload         4
+      50: getfield      #503                // Field net/minecraft/world/ChunkCoordIntPair.chunkZPos:I
+      53: bipush        16
+      55: imul
+      56: istore        6
+      58: aload_0
+      59: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+      62: ldc_w         #505                // String getChunk
+      65: invokevirtual #272                // Method net/minecraft/profiler/Profiler.startSection:(Ljava/lang/String;)V
+      68: aload_0
+      69: aload         4
+      71: getfield      #500                // Field net/minecraft/world/ChunkCoordIntPair.chunkXPos:I
+      74: aload         4
+      76: getfield      #503                // Field net/minecraft/world/ChunkCoordIntPair.chunkZPos:I
+      79: invokevirtual #509                // Method getChunkFromChunkCoords:(II)Lnet/minecraft/world/chunk/Chunk;
+      82: astore        7
+      84: aload_0
+      85: iload         5
+      87: iload         6
+      89: aload         7
+      91: invokevirtual #513                // Method func_147467_a:(IILnet/minecraft/world/chunk/Chunk;)V
+      94: aload_0
+      95: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+      98: ldc_w         #515                // String tickChunk
+     101: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     104: aload         7
+     106: iconst_0
+     107: invokevirtual #521                // Method net/minecraft/world/chunk/Chunk.func_150804_b:(Z)V
+     110: aload_0
+     111: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     114: ldc_w         #523                // String thunder
+     117: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     120: aload_0
+     121: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+     124: aload         7
+     126: invokevirtual #527                // Method net/minecraft/world/WorldProvider.canDoLightning:(Lnet/minecraft/world/chunk/Chunk;)Z
+     129: ifeq          249
+     132: aload_0
+     133: getfield      #403                // Field rand:Ljava/util/Random;
+     136: ldc_w         #528                // int 100000
+     139: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+     142: ifne          249
+     145: aload_0
+     146: invokevirtual #531                // Method isRaining:()Z
+     149: ifeq          249
+     152: aload_0
+     153: invokevirtual #534                // Method isThundering:()Z
+     156: ifeq          249
+     159: aload_0
+     160: aload_0
+     161: getfield      #537                // Field updateLCG:I
+     164: iconst_3
+     165: imul
+     166: ldc_w         #538                // int 1013904223
+     169: iadd
+     170: putfield      #537                // Field updateLCG:I
+     173: aload_0
+     174: getfield      #537                // Field updateLCG:I
+     177: iconst_2
+     178: ishr
+     179: istore        8
+     181: iload         5
+     183: iload         8
+     185: bipush        15
+     187: iand
+     188: iadd
+     189: istore        9
+     191: iload         6
+     193: iload         8
+     195: bipush        8
+     197: ishr
+     198: bipush        15
+     200: iand
+     201: iadd
+     202: istore        10
+     204: aload_0
+     205: iload         9
+     207: iload         10
+     209: invokevirtual #542                // Method getPrecipitationHeight:(II)I
+     212: istore        11
+     214: aload_0
+     215: iload         9
+     217: iload         11
+     219: iload         10
+     221: invokevirtual #546                // Method canLightningStrikeAt:(III)Z
+     224: ifeq          249
+     227: aload_0
+     228: new           #548                // class net/minecraft/entity/effect/EntityLightningBolt
+     231: dup
+     232: aload_0
+     233: iload         9
+     235: i2d
+     236: iload         11
+     238: i2d
+     239: iload         10
+     241: i2d
+     242: invokespecial #551                // Method net/minecraft/entity/effect/EntityLightningBolt."<init>":(Lnet/minecraft/world/World;DDD)V
+     245: invokevirtual #555                // Method addWeatherEffect:(Lnet/minecraft/entity/Entity;)Z
+     248: pop
+     249: aload_0
+     250: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     253: ldc_w         #557                // String iceandsnow
+     256: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     259: aload_0
+     260: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+     263: aload         7
+     265: invokevirtual #560                // Method net/minecraft/world/WorldProvider.canDoRainSnowIce:(Lnet/minecraft/world/chunk/Chunk;)Z
+     268: ifeq          495
+     271: aload_0
+     272: getfield      #403                // Field rand:Ljava/util/Random;
+     275: bipush        16
+     277: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+     280: ifne          495
+     283: aload_0
+     284: aload_0
+     285: getfield      #537                // Field updateLCG:I
+     288: iconst_3
+     289: imul
+     290: ldc_w         #538                // int 1013904223
+     293: iadd
+     294: putfield      #537                // Field updateLCG:I
+     297: aload_0
+     298: getfield      #537                // Field updateLCG:I
+     301: iconst_2
+     302: ishr
+     303: istore        8
+     305: iload         8
+     307: bipush        15
+     309: iand
+     310: istore        9
+     312: iload         8
+     314: bipush        8
+     316: ishr
+     317: bipush        15
+     319: iand
+     320: istore        10
+     322: aload_0
+     323: iload         9
+     325: iload         5
+     327: iadd
+     328: iload         10
+     330: iload         6
+     332: iadd
+     333: invokevirtual #542                // Method getPrecipitationHeight:(II)I
+     336: istore        11
+     338: aload_0
+     339: iload         9
+     341: iload         5
+     343: iadd
+     344: iload         11
+     346: iconst_1
+     347: isub
+     348: iload         10
+     350: iload         6
+     352: iadd
+     353: invokevirtual #563                // Method isBlockFreezableNaturally:(III)Z
+     356: ifeq          381
+     359: aload_0
+     360: iload         9
+     362: iload         5
+     364: iadd
+     365: iload         11
+     367: iconst_1
+     368: isub
+     369: iload         10
+     371: iload         6
+     373: iadd
+     374: getstatic     #569                // Field net/minecraft/init/Blocks.ice:Lnet/minecraft/block/Block;
+     377: invokevirtual #573                // Method setBlock:(IIILnet/minecraft/block/Block;)Z
+     380: pop
+     381: aload_0
+     382: invokevirtual #531                // Method isRaining:()Z
+     385: ifeq          428
+     388: aload_0
+     389: iload         9
+     391: iload         5
+     393: iadd
+     394: iload         11
+     396: iload         10
+     398: iload         6
+     400: iadd
+     401: iconst_1
+     402: invokevirtual #577                // Method func_147478_e:(IIIZ)Z
+     405: ifeq          428
+     408: aload_0
+     409: iload         9
+     411: iload         5
+     413: iadd
+     414: iload         11
+     416: iload         10
+     418: iload         6
+     420: iadd
+     421: getstatic     #580                // Field net/minecraft/init/Blocks.snow_layer:Lnet/minecraft/block/Block;
+     424: invokevirtual #573                // Method setBlock:(IIILnet/minecraft/block/Block;)Z
+     427: pop
+     428: aload_0
+     429: invokevirtual #531                // Method isRaining:()Z
+     432: ifeq          495
+     435: aload_0
+     436: iload         9
+     438: iload         5
+     440: iadd
+     441: iload         10
+     443: iload         6
+     445: iadd
+     446: invokevirtual #584                // Method getBiomeGenForCoords:(II)Lnet/minecraft/world/biome/BiomeGenBase;
+     449: astore        12
+     451: aload         12
+     453: invokevirtual #587                // Method net/minecraft/world/biome/BiomeGenBase.canSpawnLightningBolt:()Z
+     456: ifeq          495
+     459: aload_0
+     460: iload         9
+     462: iload         5
+     464: iadd
+     465: iload         11
+     467: iconst_1
+     468: isub
+     469: iload         10
+     471: iload         6
+     473: iadd
+     474: invokevirtual #591                // Method getBlock:(III)Lnet/minecraft/block/Block;
+     477: aload_0
+     478: iload         9
+     480: iload         5
+     482: iadd
+     483: iload         11
+     485: iconst_1
+     486: isub
+     487: iload         10
+     489: iload         6
+     491: iadd
+     492: invokevirtual #595                // Method net/minecraft/block/Block.fillWithRain:(Lnet/minecraft/world/World;III)V
+     495: aload_0
+     496: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     499: ldc_w         #321                // String tickBlocks
+     502: invokevirtual #294                // Method net/minecraft/profiler/Profiler.endStartSection:(Ljava/lang/String;)V
+     505: aload         7
+     507: invokevirtual #599                // Method net/minecraft/world/chunk/Chunk.getBlockStorageArray:()[Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;
+     510: astore        12
+     512: aload         12
+     514: arraylength
+     515: istore        9
+     517: iconst_0
+     518: istore        10
+     520: iload         10
+     522: iload         9
+     524: if_icmpge     672
+     527: aload         12
+     529: iload         10
+     531: aaload
+     532: astore        13
+     534: aload         13
+     536: ifnull        666
+     539: aload         13
+     541: invokevirtual #606                // Method net/minecraft/world/chunk/storage/ExtendedBlockStorage.getNeedsRandomTick:()Z
+     544: ifeq          666
+     547: iconst_0
+     548: istore        14
+     550: iload         14
+     552: iconst_3
+     553: if_icmpge     666
+     556: aload_0
+     557: aload_0
+     558: getfield      #537                // Field updateLCG:I
+     561: iconst_3
+     562: imul
+     563: ldc_w         #538                // int 1013904223
+     566: iadd
+     567: putfield      #537                // Field updateLCG:I
+     570: aload_0
+     571: getfield      #537                // Field updateLCG:I
+     574: iconst_2
+     575: ishr
+     576: istore        15
+     578: iload         15
+     580: bipush        15
+     582: iand
+     583: istore        16
+     585: iload         15
+     587: bipush        8
+     589: ishr
+     590: bipush        15
+     592: iand
+     593: istore        17
+     595: iload         15
+     597: bipush        16
+     599: ishr
+     600: bipush        15
+     602: iand
+     603: istore        18
+     605: iinc          2, 1
+     608: aload         13
+     610: iload         16
+     612: iload         18
+     614: iload         17
+     616: invokevirtual #609                // Method net/minecraft/world/chunk/storage/ExtendedBlockStorage.getBlockByExtId:(III)Lnet/minecraft/block/Block;
+     619: astore        19
+     621: aload         19
+     623: invokevirtual #612                // Method net/minecraft/block/Block.getTickRandomly:()Z
+     626: ifeq          660
+     629: iinc          1, 1
+     632: aload         19
+     634: aload_0
+     635: iload         16
+     637: iload         5
+     639: iadd
+     640: iload         18
+     642: aload         13
+     644: invokevirtual #615                // Method net/minecraft/world/chunk/storage/ExtendedBlockStorage.getYLocation:()I
+     647: iadd
+     648: iload         17
+     650: iload         6
+     652: iadd
+     653: aload_0
+     654: getfield      #403                // Field rand:Ljava/util/Random;
+     657: invokevirtual #619                // Method net/minecraft/block/Block.updateTick:(Lnet/minecraft/world/World;IIILjava/util/Random;)V
+     660: iinc          14, 1
+     663: goto          550
+     666: iinc          10, 1
+     669: goto          520
+     672: aload_0
+     673: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     676: invokevirtual #371                // Method net/minecraft/profiler/Profiler.endSection:()V
+     679: goto          18
+     682: return
+
+  public boolean isBlockTickScheduledThisTick(int, int, int, net.minecraft.block.Block);
+    Code:
+       0: new           #642                // class net/minecraft/world/NextTickListEntry
+       3: dup
+       4: iload_1
+       5: iload_2
+       6: iload_3
+       7: aload         4
+       9: invokespecial #645                // Method net/minecraft/world/NextTickListEntry."<init>":(IIILnet/minecraft/block/Block;)V
+      12: astore        5
+      14: aload_0
+      15: getfield      #91                 // Field pendingTickListEntriesThisTick:Ljava/util/List;
+      18: aload         5
+      20: invokeinterface #649,  2          // InterfaceMethod java/util/List.contains:(Ljava/lang/Object;)Z
+      25: ireturn
+
+  public void scheduleBlockUpdate(int, int, int, net.minecraft.block.Block, int);
+    Code:
+       0: aload_0
+       1: iload_1
+       2: iload_2
+       3: iload_3
+       4: aload         4
+       6: iload         5
+       8: iconst_0
+       9: invokevirtual #661                // Method scheduleBlockUpdateWithPriority:(IIILnet/minecraft/block/Block;II)V
+      12: return
+
+  public void scheduleBlockUpdateWithPriority(int, int, int, net.minecraft.block.Block, int, int);
+    Code:
+       0: new           #642                // class net/minecraft/world/NextTickListEntry
+       3: dup
+       4: iload_1
+       5: iload_2
+       6: iload_3
+       7: aload         4
+       9: invokespecial #645                // Method net/minecraft/world/NextTickListEntry."<init>":(IIILnet/minecraft/block/Block;)V
+      12: astore        7
+      14: iconst_0
+      15: istore        8
+      17: aload_0
+      18: getfield      #669                // Field scheduledUpdatesAreImmediate:Z
+      21: ifeq          173
+      24: aload         4
+      26: invokevirtual #469                // Method net/minecraft/block/Block.getMaterial:()Lnet/minecraft/block/material/Material;
+      29: getstatic     #475                // Field net/minecraft/block/material/Material.air:Lnet/minecraft/block/material/Material;
+      32: if_acmpeq     173
+      35: aload         4
+      37: invokevirtual #672                // Method net/minecraft/block/Block.func_149698_L:()Z
+      40: ifeq          170
+      43: bipush        8
+      45: istore        8
+      47: aload_0
+      48: aload         7
+      50: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+      53: iload         8
+      55: isub
+      56: aload         7
+      58: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+      61: iload         8
+      63: isub
+      64: aload         7
+      66: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+      69: iload         8
+      71: isub
+      72: aload         7
+      74: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+      77: iload         8
+      79: iadd
+      80: aload         7
+      82: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+      85: iload         8
+      87: iadd
+      88: aload         7
+      90: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+      93: iload         8
+      95: iadd
+      96: invokevirtual #685                // Method checkChunksExist:(IIIIII)Z
+      99: ifeq          169
+     102: aload_0
+     103: aload         7
+     105: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     108: aload         7
+     110: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+     113: aload         7
+     115: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     118: invokevirtual #591                // Method getBlock:(III)Lnet/minecraft/block/Block;
+     121: astore        9
+     123: aload         9
+     125: invokevirtual #469                // Method net/minecraft/block/Block.getMaterial:()Lnet/minecraft/block/material/Material;
+     128: getstatic     #475                // Field net/minecraft/block/material/Material.air:Lnet/minecraft/block/material/Material;
+     131: if_acmpeq     169
+     134: aload         9
+     136: aload         7
+     138: invokevirtual #689                // Method net/minecraft/world/NextTickListEntry.func_151351_a:()Lnet/minecraft/block/Block;
+     141: if_acmpne     169
+     144: aload         9
+     146: aload_0
+     147: aload         7
+     149: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     152: aload         7
+     154: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+     157: aload         7
+     159: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     162: aload_0
+     163: getfield      #403                // Field rand:Ljava/util/Random;
+     166: invokevirtual #619                // Method net/minecraft/block/Block.updateTick:(Lnet/minecraft/world/World;IIILjava/util/Random;)V
+     169: return
+     170: iconst_1
+     171: istore        5
+     173: aload_0
+     174: iload_1
+     175: iload         8
+     177: isub
+     178: iload_2
+     179: iload         8
+     181: isub
+     182: iload_3
+     183: iload         8
+     185: isub
+     186: iload_1
+     187: iload         8
+     189: iadd
+     190: iload_2
+     191: iload         8
+     193: iadd
+     194: iload_3
+     195: iload         8
+     197: iadd
+     198: invokevirtual #685                // Method checkChunksExist:(IIIIII)Z
+     201: ifeq          275
+     204: aload         4
+     206: invokevirtual #469                // Method net/minecraft/block/Block.getMaterial:()Lnet/minecraft/block/material/Material;
+     209: getstatic     #475                // Field net/minecraft/block/material/Material.air:Lnet/minecraft/block/material/Material;
+     212: if_acmpeq     239
+     215: aload         7
+     217: iload         5
+     219: i2l
+     220: aload_0
+     221: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+     224: invokevirtual #283                // Method net/minecraft/world/storage/WorldInfo.getWorldTotalTime:()J
+     227: ladd
+     228: invokevirtual #693                // Method net/minecraft/world/NextTickListEntry.setScheduledTime:(J)Lnet/minecraft/world/NextTickListEntry;
+     231: pop
+     232: aload         7
+     234: iload         6
+     236: invokevirtual #696                // Method net/minecraft/world/NextTickListEntry.setPriority:(I)V
+     239: aload_0
+     240: getfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+     243: aload         7
+     245: invokeinterface #697,  2          // InterfaceMethod java/util/Set.contains:(Ljava/lang/Object;)Z
+     250: ifne          275
+     253: aload_0
+     254: getfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+     257: aload         7
+     259: invokeinterface #700,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     264: pop
+     265: aload_0
+     266: getfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+     269: aload         7
+     271: invokevirtual #701                // Method java/util/TreeSet.add:(Ljava/lang/Object;)Z
+     274: pop
+     275: return
+
+  public void func_147446_b(int, int, int, net.minecraft.block.Block, int, int);
+    Code:
+       0: new           #642                // class net/minecraft/world/NextTickListEntry
+       3: dup
+       4: iload_1
+       5: iload_2
+       6: iload_3
+       7: aload         4
+       9: invokespecial #645                // Method net/minecraft/world/NextTickListEntry."<init>":(IIILnet/minecraft/block/Block;)V
+      12: astore        7
+      14: aload         7
+      16: iload         6
+      18: invokevirtual #696                // Method net/minecraft/world/NextTickListEntry.setPriority:(I)V
+      21: aload         4
+      23: invokevirtual #469                // Method net/minecraft/block/Block.getMaterial:()Lnet/minecraft/block/material/Material;
+      26: getstatic     #475                // Field net/minecraft/block/material/Material.air:Lnet/minecraft/block/material/Material;
+      29: if_acmpeq     49
+      32: aload         7
+      34: iload         5
+      36: i2l
+      37: aload_0
+      38: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      41: invokevirtual #283                // Method net/minecraft/world/storage/WorldInfo.getWorldTotalTime:()J
+      44: ladd
+      45: invokevirtual #693                // Method net/minecraft/world/NextTickListEntry.setScheduledTime:(J)Lnet/minecraft/world/NextTickListEntry;
+      48: pop
+      49: aload_0
+      50: getfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+      53: aload         7
+      55: invokeinterface #697,  2          // InterfaceMethod java/util/Set.contains:(Ljava/lang/Object;)Z
+      60: ifne          85
+      63: aload_0
+      64: getfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+      67: aload         7
+      69: invokeinterface #700,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+      74: pop
+      75: aload_0
+      76: getfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+      79: aload         7
+      81: invokevirtual #701                // Method java/util/TreeSet.add:(Ljava/lang/Object;)Z
+      84: pop
+      85: return
+
+  public void updateEntities();
+    Code:
+       0: aload_0
+       1: getfield      #417                // Field playerEntities:Ljava/util/List;
+       4: invokeinterface #399,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+       9: ifeq          40
+      12: aload_0
+      13: invokevirtual #722                // Method getPersistentChunks:()Lcom/google/common/collect/ImmutableSetMultimap;
+      16: invokevirtual #725                // Method com/google/common/collect/ImmutableSetMultimap.isEmpty:()Z
+      19: ifeq          40
+      22: aload_0
+      23: dup
+      24: getfield      #727                // Field updateEntityTick:I
+      27: dup_x1
+      28: iconst_1
+      29: iadd
+      30: putfield      #727                // Field updateEntityTick:I
+      33: sipush        1200
+      36: if_icmplt     44
+      39: return
+      40: aload_0
+      41: invokevirtual #730                // Method resetUpdateEntityTick:()V
+      44: aload_0
+      45: invokespecial #732                // Method net/minecraft/world/World.updateEntities:()V
+      48: return
+
+  public void resetUpdateEntityTick();
+    Code:
+       0: aload_0
+       1: iconst_0
+       2: putfield      #727                // Field updateEntityTick:I
+       5: return
+
+  public boolean tickUpdates(boolean);
+    Code:
+       0: aload_0
+       1: getfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+       4: invokevirtual #737                // Method java/util/TreeSet.size:()I
+       7: istore_2
+       8: iload_2
+       9: aload_0
+      10: getfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+      13: invokeinterface #738,  1          // InterfaceMethod java/util/Set.size:()I
+      18: if_icmpeq     32
+      21: new           #740                // class java/lang/IllegalStateException
+      24: dup
+      25: ldc_w         #742                // String TickNextTick list out of synch
+      28: invokespecial #744                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+      31: athrow
+      32: iload_2
+      33: sipush        1000
+      36: if_icmple     43
+      39: sipush        1000
+      42: istore_2
+      43: aload_0
+      44: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+      47: ldc_w         #746                // String cleaning
+      50: invokevirtual #272                // Method net/minecraft/profiler/Profiler.startSection:(Ljava/lang/String;)V
+      53: iconst_0
+      54: istore        4
+      56: iload         4
+      58: iload_2
+      59: if_icmpge     132
+      62: aload_0
+      63: getfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+      66: invokevirtual #749                // Method java/util/TreeSet.first:()Ljava/lang/Object;
+      69: checkcast     #642                // class net/minecraft/world/NextTickListEntry
+      72: astore_3
+      73: iload_1
+      74: ifne          95
+      77: aload_3
+      78: getfield      #752                // Field net/minecraft/world/NextTickListEntry.scheduledTime:J
+      81: aload_0
+      82: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      85: invokevirtual #283                // Method net/minecraft/world/storage/WorldInfo.getWorldTotalTime:()J
+      88: lcmp
+      89: ifle          95
+      92: goto          132
+      95: aload_0
+      96: getfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+      99: aload_3
+     100: invokevirtual #755                // Method java/util/TreeSet.remove:(Ljava/lang/Object;)Z
+     103: pop
+     104: aload_0
+     105: getfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+     108: aload_3
+     109: invokeinterface #756,  2          // InterfaceMethod java/util/Set.remove:(Ljava/lang/Object;)Z
+     114: pop
+     115: aload_0
+     116: getfield      #91                 // Field pendingTickListEntriesThisTick:Ljava/util/List;
+     119: aload_3
+     120: invokeinterface #757,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+     125: pop
+     126: iinc          4, 1
+     129: goto          56
+     132: aload_0
+     133: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     136: invokevirtual #371                // Method net/minecraft/profiler/Profiler.endSection:()V
+     139: aload_0
+     140: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     143: ldc_w         #759                // String ticking
+     146: invokevirtual #272                // Method net/minecraft/profiler/Profiler.startSection:(Ljava/lang/String;)V
+     149: aload_0
+     150: getfield      #91                 // Field pendingTickListEntriesThisTick:Ljava/util/List;
+     153: invokeinterface #359,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     158: astore        4
+     160: aload         4
+     162: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     167: ifeq          412
+     170: aload         4
+     172: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     177: checkcast     #642                // class net/minecraft/world/NextTickListEntry
+     180: astore_3
+     181: aload         4
+     183: invokeinterface #761,  1          // InterfaceMethod java/util/Iterator.remove:()V
+     188: iconst_0
+     189: istore        5
+     191: aload_0
+     192: aload_3
+     193: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     196: iload         5
+     198: isub
+     199: aload_3
+     200: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+     203: iload         5
+     205: isub
+     206: aload_3
+     207: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     210: iload         5
+     212: isub
+     213: aload_3
+     214: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     217: iload         5
+     219: iadd
+     220: aload_3
+     221: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+     224: iload         5
+     226: iadd
+     227: aload_3
+     228: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     231: iload         5
+     233: iadd
+     234: invokevirtual #685                // Method checkChunksExist:(IIIIII)Z
+     237: ifeq          388
+     240: aload_0
+     241: aload_3
+     242: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     245: aload_3
+     246: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+     249: aload_3
+     250: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     253: invokevirtual #591                // Method getBlock:(III)Lnet/minecraft/block/Block;
+     256: astore        6
+     258: aload         6
+     260: invokevirtual #469                // Method net/minecraft/block/Block.getMaterial:()Lnet/minecraft/block/material/Material;
+     263: getstatic     #475                // Field net/minecraft/block/material/Material.air:Lnet/minecraft/block/material/Material;
+     266: if_acmpeq     385
+     269: aload         6
+     271: aload_3
+     272: invokevirtual #689                // Method net/minecraft/world/NextTickListEntry.func_151351_a:()Lnet/minecraft/block/Block;
+     275: invokestatic  #765                // Method net/minecraft/block/Block.isEqualTo:(Lnet/minecraft/block/Block;Lnet/minecraft/block/Block;)Z
+     278: ifeq          385
+     281: aload         6
+     283: aload_0
+     284: aload_3
+     285: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     288: aload_3
+     289: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+     292: aload_3
+     293: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     296: aload_0
+     297: getfield      #403                // Field rand:Ljava/util/Random;
+     300: invokevirtual #619                // Method net/minecraft/block/Block.updateTick:(Lnet/minecraft/world/World;IIILjava/util/Random;)V
+     303: goto          385
+     306: astore        7
+     308: aload         7
+     310: ldc_w         #767                // String Exception while ticking a block
+     313: invokestatic  #773                // Method net/minecraft/crash/CrashReport.makeCrashReport:(Ljava/lang/Throwable;Ljava/lang/String;)Lnet/minecraft/crash/CrashReport;
+     316: astore        8
+     318: aload         8
+     320: ldc_w         #775                // String Block being ticked
+     323: invokevirtual #779                // Method net/minecraft/crash/CrashReport.makeCategory:(Ljava/lang/String;)Lnet/minecraft/crash/CrashReportCategory;
+     326: astore        9
+     328: aload_0
+     329: aload_3
+     330: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     333: aload_3
+     334: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+     337: aload_3
+     338: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     341: invokevirtual #783                // Method getBlockMetadata:(III)I
+     344: istore        10
+     346: goto          354
+     349: astore        11
+     351: iconst_m1
+     352: istore        10
+     354: aload         9
+     356: aload_3
+     357: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     360: aload_3
+     361: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+     364: aload_3
+     365: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     368: aload         6
+     370: iload         10
+     372: invokestatic  #789                // Method net/minecraft/crash/CrashReportCategory.func_147153_a:(Lnet/minecraft/crash/CrashReportCategory;IIILnet/minecraft/block/Block;I)V
+     375: new           #791                // class net/minecraft/util/ReportedException
+     378: dup
+     379: aload         8
+     381: invokespecial #794                // Method net/minecraft/util/ReportedException."<init>":(Lnet/minecraft/crash/CrashReport;)V
+     384: athrow
+     385: goto          409
+     388: aload_0
+     389: aload_3
+     390: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     393: aload_3
+     394: getfield      #678                // Field net/minecraft/world/NextTickListEntry.yCoord:I
+     397: aload_3
+     398: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     401: aload_3
+     402: invokevirtual #689                // Method net/minecraft/world/NextTickListEntry.func_151351_a:()Lnet/minecraft/block/Block;
+     405: iconst_0
+     406: invokevirtual #796                // Method scheduleBlockUpdate:(IIILnet/minecraft/block/Block;I)V
+     409: goto          160
+     412: aload_0
+     413: getfield      #266                // Field theProfiler:Lnet/minecraft/profiler/Profiler;
+     416: invokevirtual #371                // Method net/minecraft/profiler/Profiler.endSection:()V
+     419: aload_0
+     420: getfield      #91                 // Field pendingTickListEntriesThisTick:Ljava/util/List;
+     423: invokeinterface #799,  1          // InterfaceMethod java/util/List.clear:()V
+     428: aload_0
+     429: getfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+     432: invokevirtual #800                // Method java/util/TreeSet.isEmpty:()Z
+     435: ifne          442
+     438: iconst_1
+     439: goto          443
+     442: iconst_0
+     443: ireturn
+    Exception table:
+       from    to  target type
+         281   303   306   Class java/lang/Throwable
+         328   346   349   Class java/lang/Throwable
+
+  public java.util.List getPendingBlockUpdates(net.minecraft.world.chunk.Chunk, boolean);
+    Code:
+       0: aconst_null
+       1: astore_3
+       2: aload_1
+       3: invokevirtual #814                // Method net/minecraft/world/chunk/Chunk.getChunkCoordIntPair:()Lnet/minecraft/world/ChunkCoordIntPair;
+       6: astore        4
+       8: aload         4
+      10: getfield      #500                // Field net/minecraft/world/ChunkCoordIntPair.chunkXPos:I
+      13: iconst_4
+      14: ishl
+      15: iconst_2
+      16: isub
+      17: istore        5
+      19: iload         5
+      21: bipush        16
+      23: iadd
+      24: iconst_2
+      25: iadd
+      26: istore        6
+      28: aload         4
+      30: getfield      #503                // Field net/minecraft/world/ChunkCoordIntPair.chunkZPos:I
+      33: iconst_4
+      34: ishl
+      35: iconst_2
+      36: isub
+      37: istore        7
+      39: iload         7
+      41: bipush        16
+      43: iadd
+      44: iconst_2
+      45: iadd
+      46: istore        8
+      48: iconst_0
+      49: istore        9
+      51: iload         9
+      53: iconst_2
+      54: if_icmpge     246
+      57: iload         9
+      59: ifne          74
+      62: aload_0
+      63: getfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+      66: invokevirtual #815                // Method java/util/TreeSet.iterator:()Ljava/util/Iterator;
+      69: astore        10
+      71: goto          133
+      74: aload_0
+      75: getfield      #91                 // Field pendingTickListEntriesThisTick:Ljava/util/List;
+      78: invokeinterface #359,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      83: astore        10
+      85: aload_0
+      86: getfield      #91                 // Field pendingTickListEntriesThisTick:Ljava/util/List;
+      89: invokeinterface #399,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+      94: ifne          133
+      97: getstatic     #817                // Field logger:Lorg/apache/logging/log4j/Logger;
+     100: new           #819                // class java/lang/StringBuilder
+     103: dup
+     104: invokespecial #820                // Method java/lang/StringBuilder."<init>":()V
+     107: ldc_w         #822                // String toBeTicked =
+     110: invokevirtual #826                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     113: aload_0
+     114: getfield      #91                 // Field pendingTickListEntriesThisTick:Ljava/util/List;
+     117: invokeinterface #827,  1          // InterfaceMethod java/util/List.size:()I
+     122: invokevirtual #830                // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+     125: invokevirtual #834                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     128: invokeinterface #839,  2          // InterfaceMethod org/apache/logging/log4j/Logger.debug:(Ljava/lang/String;)V
+     133: aload         10
+     135: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     140: ifeq          240
+     143: aload         10
+     145: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     150: checkcast     #642                // class net/minecraft/world/NextTickListEntry
+     153: astore        11
+     155: aload         11
+     157: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     160: iload         5
+     162: if_icmplt     237
+     165: aload         11
+     167: getfield      #675                // Field net/minecraft/world/NextTickListEntry.xCoord:I
+     170: iload         6
+     172: if_icmpge     237
+     175: aload         11
+     177: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     180: iload         7
+     182: if_icmplt     237
+     185: aload         11
+     187: getfield      #681                // Field net/minecraft/world/NextTickListEntry.zCoord:I
+     190: iload         8
+     192: if_icmpge     237
+     195: iload_2
+     196: ifeq          218
+     199: aload_0
+     200: getfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+     203: aload         11
+     205: invokeinterface #756,  2          // InterfaceMethod java/util/Set.remove:(Ljava/lang/Object;)Z
+     210: pop
+     211: aload         10
+     213: invokeinterface #761,  1          // InterfaceMethod java/util/Iterator.remove:()V
+     218: aload_3
+     219: ifnonnull     230
+     222: new           #88                 // class java/util/ArrayList
+     225: dup
+     226: invokespecial #89                 // Method java/util/ArrayList."<init>":()V
+     229: astore_3
+     230: aload_3
+     231: aload         11
+     233: invokevirtual #840                // Method java/util/ArrayList.add:(Ljava/lang/Object;)Z
+     236: pop
+     237: goto          133
+     240: iinc          9, 1
+     243: goto          51
+     246: aload_3
+     247: areturn
+
+  public void updateEntityWithOptionalForce(net.minecraft.entity.Entity, boolean);
+    Code:
+       0: aload_0
+       1: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+       4: invokevirtual #849                // Method net/minecraft/server/MinecraftServer.getCanSpawnAnimals:()Z
+       7: ifne          28
+      10: aload_1
+      11: instanceof    #851                // class net/minecraft/entity/passive/EntityAnimal
+      14: ifne          24
+      17: aload_1
+      18: instanceof    #853                // class net/minecraft/entity/passive/EntityWaterMob
+      21: ifeq          28
+      24: aload_1
+      25: invokevirtual #858                // Method net/minecraft/entity/Entity.setDead:()V
+      28: aload_0
+      29: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+      32: invokevirtual #861                // Method net/minecraft/server/MinecraftServer.getCanSpawnNPCs:()Z
+      35: ifne          49
+      38: aload_1
+      39: instanceof    #863                // class net/minecraft/entity/INpc
+      42: ifeq          49
+      45: aload_1
+      46: invokevirtual #858                // Method net/minecraft/entity/Entity.setDead:()V
+      49: aload_0
+      50: aload_1
+      51: iload_2
+      52: invokespecial #865                // Method net/minecraft/world/World.updateEntityWithOptionalForce:(Lnet/minecraft/entity/Entity;Z)V
+      55: return
+
+  protected net.minecraft.world.chunk.IChunkProvider createChunkProvider();
+    Code:
+       0: aload_0
+       1: getfield      #872                // Field saveHandler:Lnet/minecraft/world/storage/ISaveHandler;
+       4: aload_0
+       5: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+       8: invokeinterface #876,  2          // InterfaceMethod net/minecraft/world/storage/ISaveHandler.getChunkLoader:(Lnet/minecraft/world/WorldProvider;)Lnet/minecraft/world/chunk/storage/IChunkLoader;
+      13: astore_1
+      14: aload_0
+      15: new           #878                // class net/minecraft/world/gen/ChunkProviderServer
+      18: dup
+      19: aload_0
+      20: aload_1
+      21: aload_0
+      22: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+      25: invokevirtual #881                // Method net/minecraft/world/WorldProvider.createChunkGenerator:()Lnet/minecraft/world/chunk/IChunkProvider;
+      28: invokespecial #884                // Method net/minecraft/world/gen/ChunkProviderServer."<init>":(Lnet/minecraft/world/WorldServer;Lnet/minecraft/world/chunk/storage/IChunkLoader;Lnet/minecraft/world/chunk/IChunkProvider;)V
+      31: putfield      #886                // Field theChunkProviderServer:Lnet/minecraft/world/gen/ChunkProviderServer;
+      34: aload_0
+      35: getfield      #886                // Field theChunkProviderServer:Lnet/minecraft/world/gen/ChunkProviderServer;
+      38: areturn
+
+  public java.util.List func_147486_a(int, int, int, int, int, int);
+    Code:
+       0: new           #88                 // class java/util/ArrayList
+       3: dup
+       4: invokespecial #89                 // Method java/util/ArrayList."<init>":()V
+       7: astore        7
+       9: iload_1
+      10: iconst_4
+      11: ishr
+      12: istore        8
+      14: iload         8
+      16: iload         4
+      18: iconst_4
+      19: ishr
+      20: if_icmpgt     183
+      23: iload_3
+      24: iconst_4
+      25: ishr
+      26: istore        9
+      28: iload         9
+      30: iload         6
+      32: iconst_4
+      33: ishr
+      34: if_icmpgt     177
+      37: aload_0
+      38: iload         8
+      40: iload         9
+      42: invokevirtual #509                // Method getChunkFromChunkCoords:(II)Lnet/minecraft/world/chunk/Chunk;
+      45: astore        10
+      47: aload         10
+      49: ifnull        171
+      52: aload         10
+      54: getfield      #894                // Field net/minecraft/world/chunk/Chunk.chunkTileEntityMap:Ljava/util/Map;
+      57: invokeinterface #900,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+      62: invokeinterface #903,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+      67: astore        11
+      69: aload         11
+      71: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      76: ifeq          171
+      79: aload         11
+      81: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      86: astore        12
+      88: aload         12
+      90: checkcast     #905                // class net/minecraft/tileentity/TileEntity
+      93: astore        13
+      95: aload         13
+      97: invokevirtual #908                // Method net/minecraft/tileentity/TileEntity.isInvalid:()Z
+     100: ifne          168
+     103: aload         13
+     105: getfield      #909                // Field net/minecraft/tileentity/TileEntity.xCoord:I
+     108: iload_1
+     109: if_icmplt     168
+     112: aload         13
+     114: getfield      #910                // Field net/minecraft/tileentity/TileEntity.yCoord:I
+     117: iload_2
+     118: if_icmplt     168
+     121: aload         13
+     123: getfield      #911                // Field net/minecraft/tileentity/TileEntity.zCoord:I
+     126: iload_3
+     127: if_icmplt     168
+     130: aload         13
+     132: getfield      #909                // Field net/minecraft/tileentity/TileEntity.xCoord:I
+     135: iload         4
+     137: if_icmpgt     168
+     140: aload         13
+     142: getfield      #910                // Field net/minecraft/tileentity/TileEntity.yCoord:I
+     145: iload         5
+     147: if_icmpgt     168
+     150: aload         13
+     152: getfield      #911                // Field net/minecraft/tileentity/TileEntity.zCoord:I
+     155: iload         6
+     157: if_icmpgt     168
+     160: aload         7
+     162: aload         13
+     164: invokevirtual #840                // Method java/util/ArrayList.add:(Ljava/lang/Object;)Z
+     167: pop
+     168: goto          69
+     171: iinc          9, 1
+     174: goto          28
+     177: iinc          8, 1
+     180: goto          14
+     183: aload         7
+     185: areturn
+
+  public boolean canMineBlock(net.minecraft.entity.player.EntityPlayer, int, int, int);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: iload_2
+       3: iload_3
+       4: iload         4
+       6: invokespecial #927                // Method net/minecraft/world/World.canMineBlock:(Lnet/minecraft/entity/player/EntityPlayer;III)Z
+       9: ireturn
+
+  public boolean canMineBlockBody(net.minecraft.entity.player.EntityPlayer, int, int, int);
+    Code:
+       0: aload_0
+       1: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+       4: aload_0
+       5: iload_2
+       6: iload_3
+       7: iload         4
+       9: aload_1
+      10: invokevirtual #936                // Method net/minecraft/server/MinecraftServer.isBlockProtected:(Lnet/minecraft/world/World;IIILnet/minecraft/entity/player/EntityPlayer;)Z
+      13: ifne          20
+      16: iconst_1
+      17: goto          21
+      20: iconst_0
+      21: ireturn
+
+  protected void initialize(net.minecraft.world.WorldSettings);
+    Code:
+       0: aload_0
+       1: getfield      #114                // Field entityIdMap:Lnet/minecraft/util/IntHashMap;
+       4: ifnonnull     18
+       7: aload_0
+       8: new           #116                // class net/minecraft/util/IntHashMap
+      11: dup
+      12: invokespecial #117                // Method net/minecraft/util/IntHashMap."<init>":()V
+      15: putfield      #114                // Field entityIdMap:Lnet/minecraft/util/IntHashMap;
+      18: aload_0
+      19: getfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+      22: ifnonnull     36
+      25: aload_0
+      26: new           #93                 // class java/util/HashSet
+      29: dup
+      30: invokespecial #94                 // Method java/util/HashSet."<init>":()V
+      33: putfield      #129                // Field pendingTickListEntriesHashSet:Ljava/util/Set;
+      36: aload_0
+      37: getfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+      40: ifnonnull     54
+      43: aload_0
+      44: new           #133                // class java/util/TreeSet
+      47: dup
+      48: invokespecial #134                // Method java/util/TreeSet."<init>":()V
+      51: putfield      #131                // Field pendingTickListEntriesTreeSet:Ljava/util/TreeSet;
+      54: aload_0
+      55: aload_1
+      56: invokevirtual #945                // Method createSpawnPosition:(Lnet/minecraft/world/WorldSettings;)V
+      59: aload_0
+      60: aload_1
+      61: invokespecial #947                // Method net/minecraft/world/World.initialize:(Lnet/minecraft/world/WorldSettings;)V
+      64: return
+
+  protected void createSpawnPosition(net.minecraft.world.WorldSettings);
+    Code:
+       0: aload_0
+       1: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+       4: invokevirtual #951                // Method net/minecraft/world/WorldProvider.canRespawnHere:()Z
+       7: ifne          29
+      10: aload_0
+      11: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      14: iconst_0
+      15: aload_0
+      16: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+      19: invokevirtual #954                // Method net/minecraft/world/WorldProvider.getAverageGroundLevel:()I
+      22: iconst_0
+      23: invokevirtual #958                // Method net/minecraft/world/storage/WorldInfo.setSpawnPosition:(III)V
+      26: goto          231
+      29: aload_0
+      30: aload_1
+      31: invokestatic  #962                // Method net/minecraftforge/event/ForgeEventFactory.onCreateWorldSpawn:(Lnet/minecraft/world/World;Lnet/minecraft/world/WorldSettings;)Z
+      34: ifeq          38
+      37: return
+      38: aload_0
+      39: iconst_1
+      40: putfield      #965                // Field findingSpawnPoint:Z
+      43: aload_0
+      44: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+      47: getfield      #226                // Field net/minecraft/world/WorldProvider.worldChunkMgr:Lnet/minecraft/world/biome/WorldChunkManager;
+      50: astore_2
+      51: aload_2
+      52: invokevirtual #969                // Method net/minecraft/world/biome/WorldChunkManager.getBiomesToSpawnIn:()Ljava/util/List;
+      55: astore_3
+      56: new           #477                // class java/util/Random
+      59: dup
+      60: aload_0
+      61: invokevirtual #972                // Method getSeed:()J
+      64: invokespecial #974                // Method java/util/Random."<init>":(J)V
+      67: astore        4
+      69: aload_2
+      70: iconst_0
+      71: iconst_0
+      72: sipush        256
+      75: aload_3
+      76: aload         4
+      78: invokevirtual #978                // Method net/minecraft/world/biome/WorldChunkManager.findBiomePosition:(IIILjava/util/List;Ljava/util/Random;)Lnet/minecraft/world/ChunkPosition;
+      81: astore        5
+      83: iconst_0
+      84: istore        6
+      86: aload_0
+      87: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+      90: invokevirtual #954                // Method net/minecraft/world/WorldProvider.getAverageGroundLevel:()I
+      93: istore        7
+      95: iconst_0
+      96: istore        8
+      98: aload         5
+     100: ifnull        120
+     103: aload         5
+     105: getfield      #983                // Field net/minecraft/world/ChunkPosition.chunkPosX:I
+     108: istore        6
+     110: aload         5
+     112: getfield      #986                // Field net/minecraft/world/ChunkPosition.chunkPosZ:I
+     115: istore        8
+     117: goto          131
+     120: getstatic     #817                // Field logger:Lorg/apache/logging/log4j/Logger;
+     123: ldc_w         #988                // String Unable to find spawn biome
+     126: invokeinterface #991,  2          // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Ljava/lang/String;)V
+     131: iconst_0
+     132: istore        9
+     134: aload_0
+     135: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+     138: iload         6
+     140: iload         8
+     142: invokevirtual #995                // Method net/minecraft/world/WorldProvider.canCoordinateBeSpawn:(II)Z
+     145: ifne          202
+     148: iload         6
+     150: aload         4
+     152: bipush        64
+     154: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+     157: aload         4
+     159: bipush        64
+     161: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+     164: isub
+     165: iadd
+     166: istore        6
+     168: iload         8
+     170: aload         4
+     172: bipush        64
+     174: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+     177: aload         4
+     179: bipush        64
+     181: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+     184: isub
+     185: iadd
+     186: istore        8
+     188: iinc          9, 1
+     191: iload         9
+     193: sipush        1000
+     196: if_icmpne     134
+     199: goto          202
+     202: aload_0
+     203: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+     206: iload         6
+     208: iload         7
+     210: iload         8
+     212: invokevirtual #958                // Method net/minecraft/world/storage/WorldInfo.setSpawnPosition:(III)V
+     215: aload_0
+     216: iconst_0
+     217: putfield      #965                // Field findingSpawnPoint:Z
+     220: aload_1
+     221: invokevirtual #998                // Method net/minecraft/world/WorldSettings.isBonusChestEnabled:()Z
+     224: ifeq          231
+     227: aload_0
+     228: invokevirtual #1001               // Method createBonusChest:()V
+     231: return
+
+  protected void createBonusChest();
+    Code:
+       0: new           #1008               // class net/minecraft/world/gen/feature/WorldGeneratorBonusChest
+       3: dup
+       4: ldc_w         #1010               // String bonusChest
+       7: aload_0
+       8: getfield      #403                // Field rand:Ljava/util/Random;
+      11: invokestatic  #1016               // Method net/minecraftforge/common/ChestGenHooks.getItems:(Ljava/lang/String;Ljava/util/Random;)[Lnet/minecraft/util/WeightedRandomChestContent;
+      14: ldc_w         #1010               // String bonusChest
+      17: aload_0
+      18: getfield      #403                // Field rand:Ljava/util/Random;
+      21: invokestatic  #1020               // Method net/minecraftforge/common/ChestGenHooks.getCount:(Ljava/lang/String;Ljava/util/Random;)I
+      24: invokespecial #1023               // Method net/minecraft/world/gen/feature/WorldGeneratorBonusChest."<init>":([Lnet/minecraft/util/WeightedRandomChestContent;I)V
+      27: astore_1
+      28: iconst_0
+      29: istore_2
+      30: iload_2
+      31: bipush        10
+      33: if_icmpge     130
+      36: aload_0
+      37: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      40: invokevirtual #456                // Method net/minecraft/world/storage/WorldInfo.getSpawnX:()I
+      43: aload_0
+      44: getfield      #403                // Field rand:Ljava/util/Random;
+      47: bipush        6
+      49: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+      52: iadd
+      53: aload_0
+      54: getfield      #403                // Field rand:Ljava/util/Random;
+      57: bipush        6
+      59: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+      62: isub
+      63: istore_3
+      64: aload_0
+      65: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      68: invokevirtual #459                // Method net/minecraft/world/storage/WorldInfo.getSpawnZ:()I
+      71: aload_0
+      72: getfield      #403                // Field rand:Ljava/util/Random;
+      75: bipush        6
+      77: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+      80: iadd
+      81: aload_0
+      82: getfield      #403                // Field rand:Ljava/util/Random;
+      85: bipush        6
+      87: invokevirtual #481                // Method java/util/Random.nextInt:(I)I
+      90: isub
+      91: istore        4
+      93: aload_0
+      94: iload_3
+      95: iload         4
+      97: invokevirtual #1026               // Method getTopSolidOrLiquidBlock:(II)I
+     100: iconst_1
+     101: iadd
+     102: istore        5
+     104: aload_1
+     105: aload_0
+     106: aload_0
+     107: getfield      #403                // Field rand:Ljava/util/Random;
+     110: iload_3
+     111: iload         5
+     113: iload         4
+     115: invokevirtual #1030               // Method net/minecraft/world/gen/feature/WorldGeneratorBonusChest.generate:(Lnet/minecraft/world/World;Ljava/util/Random;III)Z
+     118: ifeq          124
+     121: goto          130
+     124: iinc          2, 1
+     127: goto          30
+     130: return
+
+  public net.minecraft.util.ChunkCoordinates getEntrancePortalLocation();
+    Code:
+       0: aload_0
+       1: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+       4: invokevirtual #1036               // Method net/minecraft/world/WorldProvider.getEntrancePortalLocation:()Lnet/minecraft/util/ChunkCoordinates;
+       7: areturn
+
+  public void saveAllChunks(boolean, net.minecraft.util.IProgressUpdate) throws net.minecraft.world.MinecraftException;
+    Code:
+       0: aload_0
+       1: getfield      #298                // Field chunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+       4: invokeinterface #1043,  1         // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.canSave:()Z
+       9: ifeq          153
+      12: aload_2
+      13: ifnull        25
+      16: aload_2
+      17: ldc_w         #1045               // String Saving level
+      20: invokeinterface #1050,  2         // InterfaceMethod net/minecraft/util/IProgressUpdate.displayProgressMessage:(Ljava/lang/String;)V
+      25: aload_0
+      26: invokevirtual #1053               // Method saveLevel:()V
+      29: aload_2
+      30: ifnull        42
+      33: aload_2
+      34: ldc_w         #1055               // String Saving chunks
+      37: invokeinterface #1058,  2         // InterfaceMethod net/minecraft/util/IProgressUpdate.resetProgresAndWorkingMessage:(Ljava/lang/String;)V
+      42: aload_0
+      43: getfield      #298                // Field chunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+      46: iload_1
+      47: aload_2
+      48: invokeinterface #1062,  3         // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.saveChunks:(ZLnet/minecraft/util/IProgressUpdate;)Z
+      53: pop
+      54: getstatic     #1068               // Field net/minecraftforge/common/MinecraftForge.EVENT_BUS:Lcpw/mods/fml/common/eventhandler/EventBus;
+      57: new           #15                 // class net/minecraftforge/event/world/WorldEvent$Save
+      60: dup
+      61: aload_0
+      62: invokespecial #1071               // Method net/minecraftforge/event/world/WorldEvent$Save."<init>":(Lnet/minecraft/world/World;)V
+      65: invokevirtual #1077               // Method cpw/mods/fml/common/eventhandler/EventBus.post:(Lcpw/mods/fml/common/eventhandler/Event;)Z
+      68: pop
+      69: aload_0
+      70: getfield      #886                // Field theChunkProviderServer:Lnet/minecraft/world/gen/ChunkProviderServer;
+      73: invokevirtual #1080               // Method net/minecraft/world/gen/ChunkProviderServer.func_152380_a:()Ljava/util/List;
+      76: invokestatic  #1086               // Method com/google/common/collect/Lists.newArrayList:(Ljava/lang/Iterable;)Ljava/util/ArrayList;
+      79: astore_3
+      80: aload_3
+      81: invokevirtual #1087               // Method java/util/ArrayList.iterator:()Ljava/util/Iterator;
+      84: astore        4
+      86: aload         4
+      88: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      93: ifeq          153
+      96: aload         4
+      98: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     103: checkcast     #517                // class net/minecraft/world/chunk/Chunk
+     106: astore        5
+     108: aload         5
+     110: ifnull        150
+     113: aload_0
+     114: getfield      #112                // Field thePlayerManager:Lnet/minecraft/server/management/PlayerManager;
+     117: aload         5
+     119: getfield      #1090               // Field net/minecraft/world/chunk/Chunk.xPosition:I
+     122: aload         5
+     124: getfield      #1093               // Field net/minecraft/world/chunk/Chunk.zPosition:I
+     127: invokevirtual #1096               // Method net/minecraft/server/management/PlayerManager.func_152621_a:(II)Z
+     130: ifne          150
+     133: aload_0
+     134: getfield      #886                // Field theChunkProviderServer:Lnet/minecraft/world/gen/ChunkProviderServer;
+     137: aload         5
+     139: getfield      #1090               // Field net/minecraft/world/chunk/Chunk.xPosition:I
+     142: aload         5
+     144: getfield      #1093               // Field net/minecraft/world/chunk/Chunk.zPosition:I
+     147: invokevirtual #1100               // Method net/minecraft/world/gen/ChunkProviderServer.unloadChunksIfNotNearSpawn:(II)V
+     150: goto          86
+     153: return
+
+  public void saveChunkData();
+    Code:
+       0: aload_0
+       1: getfield      #298                // Field chunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+       4: invokeinterface #1043,  1         // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.canSave:()Z
+       9: ifeq          21
+      12: aload_0
+      13: getfield      #298                // Field chunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+      16: invokeinterface #1107,  1         // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.saveExtraData:()V
+      21: return
+
+  protected void saveLevel() throws net.minecraft.world.MinecraftException;
+    Code:
+       0: aload_0
+       1: invokevirtual #1110               // Method checkSessionLock:()V
+       4: aload_0
+       5: getfield      #872                // Field saveHandler:Lnet/minecraft/world/storage/ISaveHandler;
+       8: aload_0
+       9: getfield      #250                // Field worldInfo:Lnet/minecraft/world/storage/WorldInfo;
+      12: aload_0
+      13: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+      16: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+      19: invokevirtual #1120               // Method net/minecraft/server/management/ServerConfigurationManager.getHostPlayerData:()Lnet/minecraft/nbt/NBTTagCompound;
+      22: invokeinterface #1124,  3         // InterfaceMethod net/minecraft/world/storage/ISaveHandler.saveWorldInfoWithPlayer:(Lnet/minecraft/world/storage/WorldInfo;Lnet/minecraft/nbt/NBTTagCompound;)V
+      27: aload_0
+      28: getfield      #152                // Field mapStorage:Lnet/minecraft/world/storage/MapStorage;
+      31: invokevirtual #1127               // Method net/minecraft/world/storage/MapStorage.saveAllData:()V
+      34: aload_0
+      35: getfield      #1130               // Field perWorldStorage:Lnet/minecraft/world/storage/MapStorage;
+      38: invokevirtual #1127               // Method net/minecraft/world/storage/MapStorage.saveAllData:()V
+      41: return
+
+  public void onEntityAdded(net.minecraft.entity.Entity);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: invokespecial #1134               // Method net/minecraft/world/World.onEntityAdded:(Lnet/minecraft/entity/Entity;)V
+       5: aload_0
+       6: getfield      #114                // Field entityIdMap:Lnet/minecraft/util/IntHashMap;
+       9: aload_1
+      10: invokevirtual #1137               // Method net/minecraft/entity/Entity.getEntityId:()I
+      13: aload_1
+      14: invokevirtual #1141               // Method net/minecraft/util/IntHashMap.addKey:(ILjava/lang/Object;)V
+      17: aload_1
+      18: invokevirtual #1145               // Method net/minecraft/entity/Entity.getParts:()[Lnet/minecraft/entity/Entity;
+      21: astore_2
+      22: aload_2
+      23: ifnull        56
+      26: iconst_0
+      27: istore_3
+      28: iload_3
+      29: aload_2
+      30: arraylength
+      31: if_icmpge     56
+      34: aload_0
+      35: getfield      #114                // Field entityIdMap:Lnet/minecraft/util/IntHashMap;
+      38: aload_2
+      39: iload_3
+      40: aaload
+      41: invokevirtual #1137               // Method net/minecraft/entity/Entity.getEntityId:()I
+      44: aload_2
+      45: iload_3
+      46: aaload
+      47: invokevirtual #1141               // Method net/minecraft/util/IntHashMap.addKey:(ILjava/lang/Object;)V
+      50: iinc          3, 1
+      53: goto          28
+      56: return
+
+  public void onEntityRemoved(net.minecraft.entity.Entity);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: invokespecial #1152               // Method net/minecraft/world/World.onEntityRemoved:(Lnet/minecraft/entity/Entity;)V
+       5: aload_0
+       6: getfield      #114                // Field entityIdMap:Lnet/minecraft/util/IntHashMap;
+       9: aload_1
+      10: invokevirtual #1137               // Method net/minecraft/entity/Entity.getEntityId:()I
+      13: invokevirtual #1156               // Method net/minecraft/util/IntHashMap.removeObject:(I)Ljava/lang/Object;
+      16: pop
+      17: aload_1
+      18: invokevirtual #1145               // Method net/minecraft/entity/Entity.getParts:()[Lnet/minecraft/entity/Entity;
+      21: astore_2
+      22: aload_2
+      23: ifnull        54
+      26: iconst_0
+      27: istore_3
+      28: iload_3
+      29: aload_2
+      30: arraylength
+      31: if_icmpge     54
+      34: aload_0
+      35: getfield      #114                // Field entityIdMap:Lnet/minecraft/util/IntHashMap;
+      38: aload_2
+      39: iload_3
+      40: aaload
+      41: invokevirtual #1137               // Method net/minecraft/entity/Entity.getEntityId:()I
+      44: invokevirtual #1156               // Method net/minecraft/util/IntHashMap.removeObject:(I)Ljava/lang/Object;
+      47: pop
+      48: iinc          3, 1
+      51: goto          28
+      54: return
+
+  public net.minecraft.entity.Entity getEntityByID(int);
+    Code:
+       0: aload_0
+       1: getfield      #114                // Field entityIdMap:Lnet/minecraft/util/IntHashMap;
+       4: iload_1
+       5: invokevirtual #1162               // Method net/minecraft/util/IntHashMap.lookup:(I)Ljava/lang/Object;
+       8: checkcast     #855                // class net/minecraft/entity/Entity
+      11: areturn
+
+  public boolean addWeatherEffect(net.minecraft.entity.Entity);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: invokespecial #1164               // Method net/minecraft/world/World.addWeatherEffect:(Lnet/minecraft/entity/Entity;)Z
+       5: ifeq          50
+       8: aload_0
+       9: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+      12: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+      15: aload_1
+      16: getfield      #1168               // Field net/minecraft/entity/Entity.posX:D
+      19: aload_1
+      20: getfield      #1171               // Field net/minecraft/entity/Entity.posY:D
+      23: aload_1
+      24: getfield      #1174               // Field net/minecraft/entity/Entity.posZ:D
+      27: ldc2_w        #1175               // double 512.0d
+      30: aload_0
+      31: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+      34: getfield      #1179               // Field net/minecraft/world/WorldProvider.dimensionId:I
+      37: new           #1181               // class net/minecraft/network/play/server/S2CPacketSpawnGlobalEntity
+      40: dup
+      41: aload_1
+      42: invokespecial #1183               // Method net/minecraft/network/play/server/S2CPacketSpawnGlobalEntity."<init>":(Lnet/minecraft/entity/Entity;)V
+      45: invokevirtual #1187               // Method net/minecraft/server/management/ServerConfigurationManager.sendToAllNear:(DDDDILnet/minecraft/network/Packet;)V
+      48: iconst_1
+      49: ireturn
+      50: iconst_0
+      51: ireturn
+
+  public void setEntityState(net.minecraft.entity.Entity, byte);
+    Code:
+       0: aload_0
+       1: invokevirtual #1194               // Method getEntityTracker:()Lnet/minecraft/entity/EntityTracker;
+       4: aload_1
+       5: new           #1196               // class net/minecraft/network/play/server/S19PacketEntityStatus
+       8: dup
+       9: aload_1
+      10: iload_2
+      11: invokespecial #1198               // Method net/minecraft/network/play/server/S19PacketEntityStatus."<init>":(Lnet/minecraft/entity/Entity;B)V
+      14: invokevirtual #1202               // Method net/minecraft/entity/EntityTracker.func_151248_b:(Lnet/minecraft/entity/Entity;Lnet/minecraft/network/Packet;)V
+      17: return
+
+  public net.minecraft.world.Explosion newExplosion(net.minecraft.entity.Entity, double, double, double, float, boolean, boolean);
+    Code:
+       0: new           #1208               // class net/minecraft/world/Explosion
+       3: dup
+       4: aload_0
+       5: aload_1
+       6: dload_2
+       7: dload         4
+       9: dload         6
+      11: fload         8
+      13: invokespecial #1211               // Method net/minecraft/world/Explosion."<init>":(Lnet/minecraft/world/World;Lnet/minecraft/entity/Entity;DDDF)V
+      16: astore        11
+      18: aload         11
+      20: iload         9
+      22: putfield      #1214               // Field net/minecraft/world/Explosion.isFlaming:Z
+      25: aload         11
+      27: iload         10
+      29: putfield      #1217               // Field net/minecraft/world/Explosion.isSmoking:Z
+      32: aload_0
+      33: aload         11
+      35: invokestatic  #1221               // Method net/minecraftforge/event/ForgeEventFactory.onExplosionStart:(Lnet/minecraft/world/World;Lnet/minecraft/world/Explosion;)Z
+      38: ifeq          44
+      41: aload         11
+      43: areturn
+      44: aload         11
+      46: invokevirtual #1224               // Method net/minecraft/world/Explosion.doExplosionA:()V
+      49: aload         11
+      51: iconst_0
+      52: invokevirtual #1227               // Method net/minecraft/world/Explosion.doExplosionB:(Z)V
+      55: iload         10
+      57: ifne          70
+      60: aload         11
+      62: getfield      #1230               // Field net/minecraft/world/Explosion.affectedBlockPositions:Ljava/util/List;
+      65: invokeinterface #799,  1          // InterfaceMethod java/util/List.clear:()V
+      70: aload_0
+      71: getfield      #417                // Field playerEntities:Ljava/util/List;
+      74: invokeinterface #359,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      79: astore        12
+      81: aload         12
+      83: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      88: ifeq          168
+      91: aload         12
+      93: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      98: checkcast     #421                // class net/minecraft/entity/player/EntityPlayer
+     101: astore        13
+     103: aload         13
+     105: dload_2
+     106: dload         4
+     108: dload         6
+     110: invokevirtual #1234               // Method net/minecraft/entity/player/EntityPlayer.getDistanceSq:(DDD)D
+     113: ldc2_w        #1235               // double 4096.0d
+     116: dcmpg
+     117: ifge          165
+     120: aload         13
+     122: checkcast     #1238               // class net/minecraft/entity/player/EntityPlayerMP
+     125: getfield      #1242               // Field net/minecraft/entity/player/EntityPlayerMP.playerNetServerHandler:Lnet/minecraft/network/NetHandlerPlayServer;
+     128: new           #1244               // class net/minecraft/network/play/server/S27PacketExplosion
+     131: dup
+     132: dload_2
+     133: dload         4
+     135: dload         6
+     137: fload         8
+     139: aload         11
+     141: getfield      #1230               // Field net/minecraft/world/Explosion.affectedBlockPositions:Ljava/util/List;
+     144: aload         11
+     146: invokevirtual #1248               // Method net/minecraft/world/Explosion.func_77277_b:()Ljava/util/Map;
+     149: aload         13
+     151: invokeinterface #1252,  2         // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     156: checkcast     #1254               // class net/minecraft/util/Vec3
+     159: invokespecial #1257               // Method net/minecraft/network/play/server/S27PacketExplosion."<init>":(DDDFLjava/util/List;Lnet/minecraft/util/Vec3;)V
+     162: invokevirtual #1263               // Method net/minecraft/network/NetHandlerPlayServer.sendPacket:(Lnet/minecraft/network/Packet;)V
+     165: goto          81
+     168: aload         11
+     170: areturn
+
+  public void addBlockEvent(int, int, int, net.minecraft.block.Block, int, int);
+    Code:
+       0: new           #1276               // class net/minecraft/block/BlockEventData
+       3: dup
+       4: iload_1
+       5: iload_2
+       6: iload_3
+       7: aload         4
+       9: iload         5
+      11: iload         6
+      13: invokespecial #1278               // Method net/minecraft/block/BlockEventData."<init>":(IIILnet/minecraft/block/Block;II)V
+      16: astore        7
+      18: aload_0
+      19: getfield      #86                 // Field field_147490_S:[Lnet/minecraft/world/WorldServer$ServerBlockEventList;
+      22: aload_0
+      23: getfield      #1280               // Field blockEventCacheIndex:I
+      26: aaload
+      27: invokevirtual #1281               // Method net/minecraft/world/WorldServer$ServerBlockEventList.iterator:()Ljava/util/Iterator;
+      30: astore        8
+      32: aload         8
+      34: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      39: ifne          58
+      42: aload_0
+      43: getfield      #86                 // Field field_147490_S:[Lnet/minecraft/world/WorldServer$ServerBlockEventList;
+      46: aload_0
+      47: getfield      #1280               // Field blockEventCacheIndex:I
+      50: aaload
+      51: aload         7
+      53: invokevirtual #1282               // Method net/minecraft/world/WorldServer$ServerBlockEventList.add:(Ljava/lang/Object;)Z
+      56: pop
+      57: return
+      58: aload         8
+      60: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      65: checkcast     #1276               // class net/minecraft/block/BlockEventData
+      68: astore        9
+      70: aload         9
+      72: aload         7
+      74: invokevirtual #1285               // Method net/minecraft/block/BlockEventData.equals:(Ljava/lang/Object;)Z
+      77: ifeq          32
+      80: return
+
+  private void func_147488_Z();
+    Code:
+       0: aload_0
+       1: getfield      #86                 // Field field_147490_S:[Lnet/minecraft/world/WorldServer$ServerBlockEventList;
+       4: aload_0
+       5: getfield      #1280               // Field blockEventCacheIndex:I
+       8: aaload
+       9: invokevirtual #1295               // Method net/minecraft/world/WorldServer$ServerBlockEventList.isEmpty:()Z
+      12: ifne          148
+      15: aload_0
+      16: getfield      #1280               // Field blockEventCacheIndex:I
+      19: istore_1
+      20: aload_0
+      21: dup
+      22: getfield      #1280               // Field blockEventCacheIndex:I
+      25: iconst_1
+      26: ixor
+      27: putfield      #1280               // Field blockEventCacheIndex:I
+      30: aload_0
+      31: getfield      #86                 // Field field_147490_S:[Lnet/minecraft/world/WorldServer$ServerBlockEventList;
+      34: iload_1
+      35: aaload
+      36: invokevirtual #1281               // Method net/minecraft/world/WorldServer$ServerBlockEventList.iterator:()Ljava/util/Iterator;
+      39: astore_2
+      40: aload_2
+      41: invokeinterface #364,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      46: ifeq          136
+      49: aload_2
+      50: invokeinterface #368,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      55: checkcast     #1276               // class net/minecraft/block/BlockEventData
+      58: astore_3
+      59: aload_0
+      60: aload_3
+      61: invokespecial #1299               // Method func_147485_a:(Lnet/minecraft/block/BlockEventData;)Z
+      64: ifeq          133
+      67: aload_0
+      68: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+      71: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+      74: aload_3
+      75: invokevirtual #1302               // Method net/minecraft/block/BlockEventData.func_151340_a:()I
+      78: i2d
+      79: aload_3
+      80: invokevirtual #1305               // Method net/minecraft/block/BlockEventData.func_151342_b:()I
+      83: i2d
+      84: aload_3
+      85: invokevirtual #1308               // Method net/minecraft/block/BlockEventData.func_151341_c:()I
+      88: i2d
+      89: ldc2_w        #1309               // double 64.0d
+      92: aload_0
+      93: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+      96: getfield      #1179               // Field net/minecraft/world/WorldProvider.dimensionId:I
+      99: new           #1312               // class net/minecraft/network/play/server/S24PacketBlockAction
+     102: dup
+     103: aload_3
+     104: invokevirtual #1302               // Method net/minecraft/block/BlockEventData.func_151340_a:()I
+     107: aload_3
+     108: invokevirtual #1305               // Method net/minecraft/block/BlockEventData.func_151342_b:()I
+     111: aload_3
+     112: invokevirtual #1308               // Method net/minecraft/block/BlockEventData.func_151341_c:()I
+     115: aload_3
+     116: invokevirtual #1314               // Method net/minecraft/block/BlockEventData.getBlock:()Lnet/minecraft/block/Block;
+     119: aload_3
+     120: invokevirtual #1317               // Method net/minecraft/block/BlockEventData.getEventID:()I
+     123: aload_3
+     124: invokevirtual #1320               // Method net/minecraft/block/BlockEventData.getEventParameter:()I
+     127: invokespecial #1321               // Method net/minecraft/network/play/server/S24PacketBlockAction."<init>":(IIILnet/minecraft/block/Block;II)V
+     130: invokevirtual #1187               // Method net/minecraft/server/management/ServerConfigurationManager.sendToAllNear:(DDDDILnet/minecraft/network/Packet;)V
+     133: goto          40
+     136: aload_0
+     137: getfield      #86                 // Field field_147490_S:[Lnet/minecraft/world/WorldServer$ServerBlockEventList;
+     140: iload_1
+     141: aaload
+     142: invokevirtual #1322               // Method net/minecraft/world/WorldServer$ServerBlockEventList.clear:()V
+     145: goto          0
+     148: return
+
+  private boolean func_147485_a(net.minecraft.block.BlockEventData);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: invokevirtual #1302               // Method net/minecraft/block/BlockEventData.func_151340_a:()I
+       5: aload_1
+       6: invokevirtual #1305               // Method net/minecraft/block/BlockEventData.func_151342_b:()I
+       9: aload_1
+      10: invokevirtual #1308               // Method net/minecraft/block/BlockEventData.func_151341_c:()I
+      13: invokevirtual #591                // Method getBlock:(III)Lnet/minecraft/block/Block;
+      16: astore_2
+      17: aload_2
+      18: aload_1
+      19: invokevirtual #1314               // Method net/minecraft/block/BlockEventData.getBlock:()Lnet/minecraft/block/Block;
+      22: if_acmpne     53
+      25: aload_2
+      26: aload_0
+      27: aload_1
+      28: invokevirtual #1302               // Method net/minecraft/block/BlockEventData.func_151340_a:()I
+      31: aload_1
+      32: invokevirtual #1305               // Method net/minecraft/block/BlockEventData.func_151342_b:()I
+      35: aload_1
+      36: invokevirtual #1308               // Method net/minecraft/block/BlockEventData.func_151341_c:()I
+      39: aload_1
+      40: invokevirtual #1317               // Method net/minecraft/block/BlockEventData.getEventID:()I
+      43: aload_1
+      44: invokevirtual #1320               // Method net/minecraft/block/BlockEventData.getEventParameter:()I
+      47: invokevirtual #1326               // Method net/minecraft/block/Block.onBlockEventReceived:(Lnet/minecraft/world/World;IIIII)Z
+      50: goto          54
+      53: iconst_0
+      54: ireturn
+
+  public void flush();
+    Code:
+       0: aload_0
+       1: getfield      #872                // Field saveHandler:Lnet/minecraft/world/storage/ISaveHandler;
+       4: invokeinterface #1330,  1         // InterfaceMethod net/minecraft/world/storage/ISaveHandler.flush:()V
+       9: return
+
+  protected void updateWeather();
+    Code:
+       0: aload_0
+       1: invokevirtual #531                // Method isRaining:()Z
+       4: istore_1
+       5: aload_0
+       6: invokespecial #1333               // Method net/minecraft/world/World.updateWeather:()V
+       9: aload_0
+      10: getfield      #1336               // Field prevRainingStrength:F
+      13: aload_0
+      14: getfield      #1339               // Field rainingStrength:F
+      17: fcmpl
+      18: ifeq          51
+      21: aload_0
+      22: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+      25: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+      28: new           #1341               // class net/minecraft/network/play/server/S2BPacketChangeGameState
+      31: dup
+      32: bipush        7
+      34: aload_0
+      35: getfield      #1339               // Field rainingStrength:F
+      38: invokespecial #1344               // Method net/minecraft/network/play/server/S2BPacketChangeGameState."<init>":(IF)V
+      41: aload_0
+      42: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+      45: getfield      #1179               // Field net/minecraft/world/WorldProvider.dimensionId:I
+      48: invokevirtual #1348               // Method net/minecraft/server/management/ServerConfigurationManager.sendPacketToAllPlayersInDimension:(Lnet/minecraft/network/Packet;I)V
+      51: aload_0
+      52: getfield      #1351               // Field prevThunderingStrength:F
+      55: aload_0
+      56: getfield      #1354               // Field thunderingStrength:F
+      59: fcmpl
+      60: ifeq          93
+      63: aload_0
+      64: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+      67: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+      70: new           #1341               // class net/minecraft/network/play/server/S2BPacketChangeGameState
+      73: dup
+      74: bipush        8
+      76: aload_0
+      77: getfield      #1354               // Field thunderingStrength:F
+      80: invokespecial #1344               // Method net/minecraft/network/play/server/S2BPacketChangeGameState."<init>":(IF)V
+      83: aload_0
+      84: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+      87: getfield      #1179               // Field net/minecraft/world/WorldProvider.dimensionId:I
+      90: invokevirtual #1348               // Method net/minecraft/server/management/ServerConfigurationManager.sendPacketToAllPlayersInDimension:(Lnet/minecraft/network/Packet;I)V
+      93: iload_1
+      94: aload_0
+      95: invokevirtual #531                // Method isRaining:()Z
+      98: if_icmpeq     220
+     101: iload_1
+     102: ifeq          134
+     105: aload_0
+     106: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+     109: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+     112: new           #1341               // class net/minecraft/network/play/server/S2BPacketChangeGameState
+     115: dup
+     116: iconst_2
+     117: fconst_0
+     118: invokespecial #1344               // Method net/minecraft/network/play/server/S2BPacketChangeGameState."<init>":(IF)V
+     121: aload_0
+     122: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+     125: getfield      #1179               // Field net/minecraft/world/WorldProvider.dimensionId:I
+     128: invokevirtual #1348               // Method net/minecraft/server/management/ServerConfigurationManager.sendPacketToAllPlayersInDimension:(Lnet/minecraft/network/Packet;I)V
+     131: goto          160
+     134: aload_0
+     135: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+     138: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+     141: new           #1341               // class net/minecraft/network/play/server/S2BPacketChangeGameState
+     144: dup
+     145: iconst_1
+     146: fconst_0
+     147: invokespecial #1344               // Method net/minecraft/network/play/server/S2BPacketChangeGameState."<init>":(IF)V
+     150: aload_0
+     151: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+     154: getfield      #1179               // Field net/minecraft/world/WorldProvider.dimensionId:I
+     157: invokevirtual #1348               // Method net/minecraft/server/management/ServerConfigurationManager.sendPacketToAllPlayersInDimension:(Lnet/minecraft/network/Packet;I)V
+     160: aload_0
+     161: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+     164: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+     167: new           #1341               // class net/minecraft/network/play/server/S2BPacketChangeGameState
+     170: dup
+     171: bipush        7
+     173: aload_0
+     174: getfield      #1339               // Field rainingStrength:F
+     177: invokespecial #1344               // Method net/minecraft/network/play/server/S2BPacketChangeGameState."<init>":(IF)V
+     180: aload_0
+     181: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+     184: getfield      #1179               // Field net/minecraft/world/WorldProvider.dimensionId:I
+     187: invokevirtual #1348               // Method net/minecraft/server/management/ServerConfigurationManager.sendPacketToAllPlayersInDimension:(Lnet/minecraft/network/Packet;I)V
+     190: aload_0
+     191: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+     194: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+     197: new           #1341               // class net/minecraft/network/play/server/S2BPacketChangeGameState
+     200: dup
+     201: bipush        8
+     203: aload_0
+     204: getfield      #1354               // Field thunderingStrength:F
+     207: invokespecial #1344               // Method net/minecraft/network/play/server/S2BPacketChangeGameState."<init>":(IF)V
+     210: aload_0
+     211: getfield      #222                // Field provider:Lnet/minecraft/world/WorldProvider;
+     214: getfield      #1179               // Field net/minecraft/world/WorldProvider.dimensionId:I
+     217: invokevirtual #1348               // Method net/minecraft/server/management/ServerConfigurationManager.sendPacketToAllPlayersInDimension:(Lnet/minecraft/network/Packet;I)V
+     220: return
+
+  protected int func_152379_p();
+    Code:
+       0: aload_0
+       1: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+       4: invokevirtual #1114               // Method net/minecraft/server/MinecraftServer.getConfigurationManager:()Lnet/minecraft/server/management/ServerConfigurationManager;
+       7: invokevirtual #1359               // Method net/minecraft/server/management/ServerConfigurationManager.getViewDistance:()I
+      10: ireturn
+
+  public net.minecraft.server.MinecraftServer func_73046_m();
+    Code:
+       0: aload_0
+       1: getfield      #100                // Field mcServer:Lnet/minecraft/server/MinecraftServer;
+       4: areturn
+
+  public net.minecraft.entity.EntityTracker getEntityTracker();
+    Code:
+       0: aload_0
+       1: getfield      #107                // Field theEntityTracker:Lnet/minecraft/entity/EntityTracker;
+       4: areturn
+
+  public net.minecraft.server.management.PlayerManager getPlayerManager();
+    Code:
+       0: aload_0
+       1: getfield      #112                // Field thePlayerManager:Lnet/minecraft/server/management/PlayerManager;
+       4: areturn
+
+  public net.minecraft.world.Teleporter getDefaultTeleporter();
+    Code:
+       0: aload_0
+       1: getfield      #139                // Field worldTeleporter:Lnet/minecraft/world/Teleporter;
+       4: areturn
+
+  public void func_147487_a(java.lang.String, double, double, double, int, double, double, double, double);
+    Code:
+       0: new           #1369               // class net/minecraft/network/play/server/S2APacketParticles
+       3: dup
+       4: aload_1
+       5: dload_2
+       6: d2f
+       7: dload         4
+       9: d2f
+      10: dload         6
+      12: d2f
+      13: dload         9
+      15: d2f
+      16: dload         11
+      18: d2f
+      19: dload         13
+      21: d2f
+      22: dload         15
+      24: d2f
+      25: iload         8
+      27: invokespecial #1372               // Method net/minecraft/network/play/server/S2APacketParticles."<init>":(Ljava/lang/String;FFFFFFFI)V
+      30: astore        17
+      32: iconst_0
+      33: istore        18
+      35: iload         18
+      37: aload_0
+      38: getfield      #417                // Field playerEntities:Ljava/util/List;
+      41: invokeinterface #827,  1          // InterfaceMethod java/util/List.size:()I
+      46: if_icmpge     148
+      49: aload_0
+      50: getfield      #417                // Field playerEntities:Ljava/util/List;
+      53: iload         18
+      55: invokeinterface #1374,  2         // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+      60: checkcast     #1238               // class net/minecraft/entity/player/EntityPlayerMP
+      63: astore        19
+      65: aload         19
+      67: invokevirtual #1377               // Method net/minecraft/entity/player/EntityPlayerMP.getPlayerCoordinates:()Lnet/minecraft/util/ChunkCoordinates;
+      70: astore        20
+      72: dload_2
+      73: aload         20
+      75: getfield      #1381               // Field net/minecraft/util/ChunkCoordinates.posX:I
+      78: i2d
+      79: dsub
+      80: dstore        21
+      82: dload         4
+      84: aload         20
+      86: getfield      #1383               // Field net/minecraft/util/ChunkCoordinates.posY:I
+      89: i2d
+      90: dsub
+      91: dstore        23
+      93: dload         6
+      95: aload         20
+      97: getfield      #1385               // Field net/minecraft/util/ChunkCoordinates.posZ:I
+     100: i2d
+     101: dsub
+     102: dstore        25
+     104: dload         21
+     106: dload         21
+     108: dmul
+     109: dload         23
+     111: dload         23
+     113: dmul
+     114: dadd
+     115: dload         25
+     117: dload         25
+     119: dmul
+     120: dadd
+     121: dstore        27
+     123: dload         27
+     125: ldc2_w        #1386               // double 256.0d
+     128: dcmpg
+     129: ifgt          142
+     132: aload         19
+     134: getfield      #1242               // Field net/minecraft/entity/player/EntityPlayerMP.playerNetServerHandler:Lnet/minecraft/network/NetHandlerPlayServer;
+     137: aload         17
+     139: invokevirtual #1263               // Method net/minecraft/network/NetHandlerPlayServer.sendPacket:(Lnet/minecraft/network/Packet;)V
+     142: iinc          18, 1
+     145: goto          35
+     148: return
+
+  public java.io.File getChunkSaveLocation();
+    Code:
+       0: aload_0
+       1: getfield      #886                // Field theChunkProviderServer:Lnet/minecraft/world/gen/ChunkProviderServer;
+       4: getfield      #1411               // Field net/minecraft/world/gen/ChunkProviderServer.currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+       7: checkcast     #1413               // class net/minecraft/world/chunk/storage/AnvilChunkLoader
+      10: getfield      #1417               // Field net/minecraft/world/chunk/storage/AnvilChunkLoader.chunkSaveLocation:Ljava/io/File;
+      13: areturn
+
+  static {};
+    Code:
+       0: invokestatic  #1424               // Method org/apache/logging/log4j/LogManager.getLogger:()Lorg/apache/logging/log4j/Logger;
+       3: putstatic     #817                // Field logger:Lorg/apache/logging/log4j/Logger;
+       6: bipush        10
+       8: anewarray     #1426               // class net/minecraft/util/WeightedRandomChestContent
+      11: dup
+      12: iconst_0
+      13: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+      16: dup
+      17: getstatic     #1432               // Field net/minecraft/init/Items.stick:Lnet/minecraft/item/Item;
+      20: iconst_0
+      21: iconst_1
+      22: iconst_3
+      23: bipush        10
+      25: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+      28: aastore
+      29: dup
+      30: iconst_1
+      31: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+      34: dup
+      35: getstatic     #1438               // Field net/minecraft/init/Blocks.planks:Lnet/minecraft/block/Block;
+      38: invokestatic  #1444               // Method net/minecraft/item/Item.getItemFromBlock:(Lnet/minecraft/block/Block;)Lnet/minecraft/item/Item;
+      41: iconst_0
+      42: iconst_1
+      43: iconst_3
+      44: bipush        10
+      46: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+      49: aastore
+      50: dup
+      51: iconst_2
+      52: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+      55: dup
+      56: getstatic     #1447               // Field net/minecraft/init/Blocks.log:Lnet/minecraft/block/Block;
+      59: invokestatic  #1444               // Method net/minecraft/item/Item.getItemFromBlock:(Lnet/minecraft/block/Block;)Lnet/minecraft/item/Item;
+      62: iconst_0
+      63: iconst_1
+      64: iconst_3
+      65: bipush        10
+      67: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+      70: aastore
+      71: dup
+      72: iconst_3
+      73: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+      76: dup
+      77: getstatic     #1450               // Field net/minecraft/init/Items.stone_axe:Lnet/minecraft/item/Item;
+      80: iconst_0
+      81: iconst_1
+      82: iconst_1
+      83: iconst_3
+      84: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+      87: aastore
+      88: dup
+      89: iconst_4
+      90: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+      93: dup
+      94: getstatic     #1453               // Field net/minecraft/init/Items.wooden_axe:Lnet/minecraft/item/Item;
+      97: iconst_0
+      98: iconst_1
+      99: iconst_1
+     100: iconst_5
+     101: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+     104: aastore
+     105: dup
+     106: iconst_5
+     107: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+     110: dup
+     111: getstatic     #1456               // Field net/minecraft/init/Items.stone_pickaxe:Lnet/minecraft/item/Item;
+     114: iconst_0
+     115: iconst_1
+     116: iconst_1
+     117: iconst_3
+     118: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+     121: aastore
+     122: dup
+     123: bipush        6
+     125: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+     128: dup
+     129: getstatic     #1459               // Field net/minecraft/init/Items.wooden_pickaxe:Lnet/minecraft/item/Item;
+     132: iconst_0
+     133: iconst_1
+     134: iconst_1
+     135: iconst_5
+     136: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+     139: aastore
+     140: dup
+     141: bipush        7
+     143: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+     146: dup
+     147: getstatic     #1462               // Field net/minecraft/init/Items.apple:Lnet/minecraft/item/Item;
+     150: iconst_0
+     151: iconst_2
+     152: iconst_3
+     153: iconst_5
+     154: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+     157: aastore
+     158: dup
+     159: bipush        8
+     161: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+     164: dup
+     165: getstatic     #1465               // Field net/minecraft/init/Items.bread:Lnet/minecraft/item/Item;
+     168: iconst_0
+     169: iconst_2
+     170: iconst_3
+     171: iconst_3
+     172: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+     175: aastore
+     176: dup
+     177: bipush        9
+     179: new           #1426               // class net/minecraft/util/WeightedRandomChestContent
+     182: dup
+     183: getstatic     #1468               // Field net/minecraft/init/Blocks.log2:Lnet/minecraft/block/Block;
+     186: invokestatic  #1444               // Method net/minecraft/item/Item.getItemFromBlock:(Lnet/minecraft/block/Block;)Lnet/minecraft/item/Item;
+     189: iconst_0
+     190: iconst_1
+     191: iconst_3
+     192: bipush        10
+     194: invokespecial #1435               // Method net/minecraft/util/WeightedRandomChestContent."<init>":(Lnet/minecraft/item/Item;IIII)V
+     197: aastore
+     198: putstatic     #1470               // Field bonusChestContent:[Lnet/minecraft/util/WeightedRandomChestContent;
+     201: return
+}

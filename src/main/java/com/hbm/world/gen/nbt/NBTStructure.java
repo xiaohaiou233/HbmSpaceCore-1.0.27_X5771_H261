@@ -21,6 +21,7 @@ import com.hbm.config.StructureConfig;
 import com.hbm.handler.ThreeInts;
 import com.hbm.interfaces.Untested;
 import com.hbm.main.MainRegistry;
+import com.hbm.tileentity.network.TileEntityPylonBase;
 import com.hbm.util.Tuple.Pair;
 import com.hbm.util.Tuple.Quartet;
 import com.hbm.util.fauxpointtwelve.BlockPos;
@@ -73,6 +74,9 @@ public class NBTStructure {
 	private String name;
 
 	private boolean isLoaded;
+
+	// ==== [modpack] 结构格式版本：v1=连接存绝对坐标（迁移后作废）；v2=接线器连接存相对结构原点的坐标（可平移）
+	private int version = 1;
 
 	protected ThreeInts size;
 	private List<Pair<Short, String>> itemPalette;
@@ -208,7 +212,7 @@ public class NBTStructure {
 		Map<Pair<Block, Integer>, Integer> palette = new HashMap<>();
 		Map<Short, Integer> itemPalette = new HashMap<>();
 
-		structure.setInteger("version", 1);
+		structure.setInteger("version", 2); // ==== [modpack] v2：接线器连接存相对结构原点的坐标
 
 		int ox = Math.min(x1, x2);
 		int oy = Math.min(y1, y2);
@@ -260,6 +264,19 @@ public class NBTStructure {
 						nbt.removeTag("x");
 						nbt.removeTag("y");
 						nbt.removeTag("z");
+
+						// ==== [modpack] 接线器连接存相对结构原点的坐标（ox,oy,oz），生成时平移回世界坐标
+						// v1 存的是绝对坐标，结构搬到别处就全作废；v2 相对坐标可任意平移到新位置
+						if(te instanceof TileEntityPylonBase) {
+							int count = nbt.getInteger("conCount");
+							for(int i = 0; i < count; i++) {
+								int[] con = nbt.getIntArray("con" + i);
+								con[0] -= ox;
+								con[1] -= oy;
+								con[2] -= oz;
+								nbt.setIntArray("con" + i, con);
+							}
+						}
 
 						nbtBlock.setTag("nbt", nbt);
 
@@ -332,6 +349,10 @@ public class NBTStructure {
 		try {
 			NBTTagCompound data = CompressedStreamTools.readCompressed(inputStream);
 
+
+			// GET SIZE (for offsetting to center)
+			// ==== [modpack] 记录结构格式版本（v2=接线器连接是相对坐标，build 时需平移）
+			version = data.getInteger("version");
 
 			// GET SIZE (for offsetting to center)
 			size = parsePos(data.getTagList("size", NBT.TAG_INT));
@@ -563,6 +584,12 @@ public class NBTStructure {
 					if(state.nbt != null) {
 						TileEntity te = buildTileEntity(world, block, worldItemPalette, state.nbt, coordBaseMode, null);
 						world.setTileEntity(rx, ry, rz, te);
+
+						// ==== [modpack] v2 结构：接线器相对连接坐标 → 世界坐标（结构原点 x,y,z + 按 coordBaseMode 旋转）
+						// v1 连接是导出时绝对坐标，结构搬到别处作废；v2 相对坐标在这里平移回正确位置
+						if(version >= 2 && te instanceof TileEntityPylonBase) {
+							translateConnections((TileEntityPylonBase) te, x, y, z, coordBaseMode);
+						}
 					}
 				}
 			}
@@ -749,6 +776,32 @@ public class NBTStructure {
 		if(definition.block instanceof BlockVine) return INBTBlockTransformable.transformMetaVine(definition.meta, coordBaseMode);
 		if(definition.block instanceof BlockTrapDoor) return INBTBlockTransformable.transformMetaTrapdoor(definition.meta, coordBaseMode);
 		return definition.meta;
+	}
+
+	// ==== [modpack] 把 v2 结构接线器的相对连接坐标平移到世界坐标（结构原点 ox,oy,oz + 按 coordBaseMode 旋转）
+	private void translateConnections(TileEntityPylonBase pylon, int ox, int oy, int oz, int coordBaseMode) {
+		for(int[] con : pylon.getConnected()) {
+			int[] rot = rotateOffset(con[0], con[2], coordBaseMode);
+			con[0] = ox + rot[0];
+			con[1] = oy + con[1];
+			con[2] = oz + rot[1];
+		}
+		pylon.markDirty();
+	}
+
+	// 相对偏移 (dx,dz) 绕竖直轴按 coordBaseMode 旋转（与 rotateX/rotateZ 的网格旋转一致）
+	private int[] rotateOffset(int dx, int dz, int coordBaseMode) {
+		switch(coordBaseMode) {
+		case 1: return new int[] {-dz, dx};
+		case 2: return new int[] {-dx, -dz};
+		case 3: return new int[] {dz, -dx};
+		default: return new int[] {dx, dz};
+		}
+	}
+
+	// ==== [modpack] 结构格式版本（SpawnTeleporter 判断接线器是否走旧版 v1 兜底）
+	public int getVersion() {
+		return version;
 	}
 
 	public int rotateX(int x, int z, int coordBaseMode) {

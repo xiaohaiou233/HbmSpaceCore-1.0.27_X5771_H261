@@ -18,7 +18,7 @@ public class RenderMaskMan extends RenderLiving {
 
 	@Override
 	public void doRender(Entity entity, double x, double y, double z, float f0, float f1) {
-		
+
         BossStatus.setBossStatus((EntityMaskMan)entity, true);
         super.doRender(entity, x, y, z, f0, f1);
 	}

@@ -23,6 +23,11 @@ public class MapGenVNoise extends MapGenBase {
 
 	public BiomeGenBase applyToBiome;
 
+	// [perf] F2：getCellCenter 原每格 new Random(hash) + new double[2]，每 chunk 16×16×5×5=6400 次分配。
+	// 改为字段级 Random 复用（setSeed 保持确定性序列一致）+ 复用 double[2] 缓冲区（调用方立即消费，无跨调用保留）。
+	private final Random cellRandom = new Random(0);
+	private final double[] cellCenterBuffer = new double[2];
+
 	@Override
 	public void func_151539_a(IChunkProvider provider, World world, int chunkX, int chunkZ, Block[] blocks) {
 		long seed = world.getSeed();
@@ -83,12 +88,12 @@ public class MapGenVNoise extends MapGenBase {
 	//i cant math for shit to be honest
 	private double[] getCellCenter(int cellX, int cellZ, long worldSeed) {
 		long hash = (long) cellX * 341873128712L + (long) cellZ * 132897987541L + worldSeed;
-		Random rand = new Random(hash);
-		double offsetX = (rand.nextDouble() - 0.5) * cellSize;
-		double offsetZ = (rand.nextDouble() - 0.5) * cellSize;
-		double centerX = cellX * (double) cellSize + cellSize / 2.0 + offsetX;
-		double centerZ = cellZ * (double) cellSize + cellSize / 2.0 + offsetZ;
-		return new double[]{centerX, centerZ};
+		cellRandom.setSeed(hash); // 与 new Random(hash) 等价（构造器内部就是 setSeed），序列完全一致
+		double offsetX = (cellRandom.nextDouble() - 0.5) * cellSize;
+		double offsetZ = (cellRandom.nextDouble() - 0.5) * cellSize;
+		cellCenterBuffer[0] = cellX * (double) cellSize + cellSize / 2.0 + offsetX;
+		cellCenterBuffer[1] = cellZ * (double) cellSize + cellSize / 2.0 + offsetZ;
+		return cellCenterBuffer;
 	}
 
 	private double distance(double x1, double z1, double x2, double z2) {

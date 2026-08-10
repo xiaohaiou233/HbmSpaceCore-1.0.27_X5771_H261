@@ -11,6 +11,7 @@ import com.hbm.render.block.RenderBlockMultipass;
 import com.hbm.tileentity.network.TileEntityPipeBaseNT;
 import com.hbm.util.i18n.I18nUtil;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -195,15 +196,23 @@ public class FluidDuctPaintable extends FluidDuctBase implements IToolable, IBlo
 		@Override
 		public void readFromNBT(NBTTagCompound nbt) {
 			super.readFromNBT(nbt);
-			int id = nbt.getInteger("block");
-			this.block = id == 0 ? null : Block.getBlockById(id);
+			// [B5 修复] 方块引用优先按注册名(String)解析，跨环境稳定；旧数据兼容瞬时 int ID
+			if(nbt.getString("blockName").length() > 0) {
+				this.block = Block.getBlockFromName(nbt.getString("blockName"));
+			} else {
+				int id = nbt.getInteger("block");
+				this.block = id == 0 ? null : Block.getBlockById(id);
+			}
 			this.meta = nbt.getInteger("meta");
+			// [TEMP-B5-DIAG] 可喷涂流体管道贴图诊断：打印存读的 ID/meta/反查方块名
+			System.out.println("[B5-diag] readFromNBT name=" + nbt.getString("blockName") + " id=" + nbt.getInteger("block") + " meta=" + this.meta + " resolved=" + (this.block == null ? "null" : Block.blockRegistry.getNameForObject(this.block)));
 		}
 
 		@Override
 		public void writeToNBT(NBTTagCompound nbt) {
 			super.writeToNBT(nbt);
-			if(block != null) nbt.setInteger("block", Block.getIdFromBlock(block));
+			// [B5 修复] 存注册名而非瞬时 ID，避免跨环境错位
+			if(block != null) nbt.setString("blockName", GameRegistry.findUniqueIdentifierFor(block).toString());
 			nbt.setInteger("meta", meta);
 		}
 
@@ -211,7 +220,7 @@ public class FluidDuctPaintable extends FluidDuctBase implements IToolable, IBlo
 		public NBTTagCompound getSettings(World world, int x, int y, int z) {
 			NBTTagCompound nbt = new NBTTagCompound();
 			if(block != null) {
-				nbt.setInteger("paintblock", Block.getIdFromBlock(block));
+				nbt.setString("paintblockName", GameRegistry.findUniqueIdentifierFor(block).toString());
 				nbt.setInteger("paintmeta", meta);
 			}
 			return nbt;
@@ -219,7 +228,11 @@ public class FluidDuctPaintable extends FluidDuctBase implements IToolable, IBlo
 
 		@Override
 		public void pasteSettings(NBTTagCompound nbt, int index, World world, EntityPlayer player, int x, int y, int z) {
-			if(nbt.hasKey("paintblock")) {
+			// [B5 修复] 优先注册名，兼容旧 int ID
+			if(nbt.getString("paintblockName").length() > 0) {
+				this.block = Block.getBlockFromName(nbt.getString("paintblockName"));
+				this.meta = nbt.getInteger("paintmeta");
+			} else if(nbt.hasKey("paintblock")) {
 				this.block = Block.getBlockById(nbt.getInteger("paintblock"));
 				this.meta = nbt.getInteger("paintmeta");
 			}

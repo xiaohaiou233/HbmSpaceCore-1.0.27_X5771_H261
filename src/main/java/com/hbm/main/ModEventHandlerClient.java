@@ -1182,7 +1182,8 @@ public class ModEventHandlerClient {
 			}
 		}
 
-		if(event.phase == Phase.START && mc.theWorld.provider.dimensionId == SpaceConfig.orbitDimension) {
+		// ==== [modpack] 出生维度与 ORBIT 同样 0 重力：客户端镜像也要覆盖 SPAWN（与服务端 ModEventHandler:963 一致），否则掉落物客户端预测下落与服务端回退不同步
+		if(event.phase == Phase.START && (mc.theWorld.provider.dimensionId == SpaceConfig.orbitDimension || mc.theWorld.provider.dimensionId == SpaceConfig.spawnDimension)) {
 			for(Object o : mc.theWorld.loadedEntityList) {
 				if(o instanceof EntityItem) {
 					EntityItem item = (EntityItem) o;

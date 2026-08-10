@@ -25,8 +25,6 @@ public class ExperimentalCaveGenerator extends MapGenBase {
 	public BiomeGenBase ignoreBiome;
 	public BiomeGenBase onlyBiome;
 
-	PerlinFestival perlinNoise;
-
 	public ExperimentalCaveGenerator() {
 		this(3, 30, 6.0F);
 	}
@@ -66,6 +64,11 @@ public class ExperimentalCaveGenerator extends MapGenBase {
 
 		int k1 = random.nextInt(totalSteps / 2) + totalSteps / 4;
 
+		// [perf] 把 PerlinFestival 构造从 step 循环内提到方法级：seed 在整个循环内恒定，
+		// 原来每 step 都 new PerlinFestival(seed) 会重建 512 元素 permutation（Fisher-Yates），
+		// 每 chunk 数百次构造浪费巨大；提出来每次 generateCaveNode 只构造一次，输出完全一致。
+		PerlinFestival perlinNoise = new PerlinFestival(seed);
+
 		for (boolean flag = random.nextInt(6) == 0; currentStep < totalSteps; ++currentStep) {
 			// double roomWidth = 1.5D + (Math.sin(Math.PI / 2F) * caveSize); // Example conversion
 			// double roomHeight = roomWidth * caveSizeIncrease;
@@ -76,8 +79,6 @@ public class ExperimentalCaveGenerator extends MapGenBase {
 			x += (double) (MathHelper.cos(yaw) * f5);
 			y += (double) f6;
 			z += (double) (MathHelper.sin(yaw) * f5);
-
-			this.perlinNoise = new PerlinFestival(seed);
 
 			// double noisefactor1 = perlinNoise.noise(x * d6, y * d7, z * d6);
 			// double noisefactor2 = perlinNoise.noise(x * d7 + 2, y * d7 + 2, z * d7 + 2);

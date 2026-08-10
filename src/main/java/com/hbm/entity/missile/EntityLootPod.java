@@ -13,12 +13,15 @@ public class EntityLootPod extends Entity {
 
 	public EntityLootPod(World world) {
 		super(world);
-		setSize(0.9F, 0.9F);
+		// [modpack] hitbox 对齐 landing_capsule 模型（3.75 高，宽约 2.1-2.85）：原 0.9×0.9 只有模型底部可右键/碰撞，
+		// 模型上部 2.85 格完全不可交互。宽用 2.0 与逃生舱一致（略窄于模型裙摆，可接受）。
+		setSize(2.0F, 3.75F);
 	}
 
 	public EntityLootPod(World world, double x, double y, double z) {
 		this(world);
-		setPosition(x, y + 0.5D, z);
+		// [modpack] y 直接作为底部（RenderLootPod 的立方体底部锚定 local y=0），贴地
+		setPosition(x, y, z);
 		noClip = true;
 	}
 

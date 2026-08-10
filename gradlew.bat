@@ -16,6 +16,9 @@ if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
 
+@rem ==== [modpack] 锁定构建 JDK 为 Java 8（Gradle 5.6.4 不支持系统默认的 Java 21）====
+if exist "E:\JAVA\java8\bin\java.exe" set "JAVA_HOME=E:\JAVA\java8"
+
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
 

@@ -1,0 +1,822 @@
+Compiled from "ChunkProviderServer.java"
+public class net.minecraft.world.gen.ChunkProviderServer implements net.minecraft.world.chunk.IChunkProvider {
+  private static final org.apache.logging.log4j.Logger logger;
+
+  public java.util.Set chunksToUnload;
+
+  private net.minecraft.world.chunk.Chunk defaultEmptyChunk;
+
+  public net.minecraft.world.chunk.IChunkProvider currentChunkProvider;
+
+  public net.minecraft.world.chunk.storage.IChunkLoader currentChunkLoader;
+
+  public boolean loadChunkOnProvideRequest;
+
+  public net.minecraft.util.LongHashMap loadedChunkHashMap;
+
+  public java.util.List loadedChunks;
+
+  public net.minecraft.world.WorldServer worldObj;
+
+  private java.util.Set<java.lang.Long> loadingChunks;
+
+  private static final java.lang.String __OBFID;
+
+  public net.minecraft.world.gen.ChunkProviderServer(net.minecraft.world.WorldServer, net.minecraft.world.chunk.storage.IChunkLoader, net.minecraft.world.chunk.IChunkProvider);
+    Code:
+       0: aload_0
+       1: invokespecial #36                 // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: new           #38                 // class java/util/concurrent/ConcurrentHashMap
+       8: dup
+       9: invokespecial #39                 // Method java/util/concurrent/ConcurrentHashMap."<init>":()V
+      12: invokestatic  #45                 // Method java/util/Collections.newSetFromMap:(Ljava/util/Map;)Ljava/util/Set;
+      15: putfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+      18: aload_0
+      19: iconst_1
+      20: putfield      #49                 // Field loadChunkOnProvideRequest:Z
+      23: aload_0
+      24: new           #51                 // class net/minecraft/util/LongHashMap
+      27: dup
+      28: invokespecial #52                 // Method net/minecraft/util/LongHashMap."<init>":()V
+      31: putfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+      34: aload_0
+      35: new           #56                 // class java/util/ArrayList
+      38: dup
+      39: invokespecial #57                 // Method java/util/ArrayList."<init>":()V
+      42: putfield      #59                 // Field loadedChunks:Ljava/util/List;
+      45: aload_0
+      46: invokestatic  #65                 // Method com/google/common/collect/Sets.newHashSet:()Ljava/util/HashSet;
+      49: putfield      #67                 // Field loadingChunks:Ljava/util/Set;
+      52: aload_0
+      53: new           #69                 // class net/minecraft/world/chunk/EmptyChunk
+      56: dup
+      57: aload_1
+      58: iconst_0
+      59: iconst_0
+      60: invokespecial #72                 // Method net/minecraft/world/chunk/EmptyChunk."<init>":(Lnet/minecraft/world/World;II)V
+      63: putfield      #74                 // Field defaultEmptyChunk:Lnet/minecraft/world/chunk/Chunk;
+      66: aload_0
+      67: aload_1
+      68: putfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      71: aload_0
+      72: aload_2
+      73: putfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+      76: aload_0
+      77: aload_3
+      78: putfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+      81: return
+
+  public boolean chunkExists(int, int);
+    Code:
+       0: aload_0
+       1: getfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+       4: iload_1
+       5: iload_2
+       6: invokestatic  #93                 // Method net/minecraft/world/ChunkCoordIntPair.chunkXZ2Int:(II)J
+       9: invokevirtual #97                 // Method net/minecraft/util/LongHashMap.containsItem:(J)Z
+      12: ireturn
+
+  public java.util.List func_152380_a();
+    Code:
+       0: aload_0
+       1: getfield      #59                 // Field loadedChunks:Ljava/util/List;
+       4: areturn
+
+  public void unloadChunksIfNotNearSpawn(int, int);
+    Code:
+       0: aload_0
+       1: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+       4: getfield      #110                // Field net/minecraft/world/WorldServer.provider:Lnet/minecraft/world/WorldProvider;
+       7: invokevirtual #116                // Method net/minecraft/world/WorldProvider.canRespawnHere:()Z
+      10: ifeq          121
+      13: aload_0
+      14: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      17: getfield      #110                // Field net/minecraft/world/WorldServer.provider:Lnet/minecraft/world/WorldProvider;
+      20: getfield      #119                // Field net/minecraft/world/WorldProvider.dimensionId:I
+      23: invokestatic  #125                // Method net/minecraftforge/common/DimensionManager.shouldLoadSpawn:(I)Z
+      26: ifeq          121
+      29: aload_0
+      30: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      33: invokevirtual #129                // Method net/minecraft/world/WorldServer.getSpawnPoint:()Lnet/minecraft/util/ChunkCoordinates;
+      36: astore_3
+      37: iload_1
+      38: bipush        16
+      40: imul
+      41: bipush        8
+      43: iadd
+      44: aload_3
+      45: getfield      #134                // Field net/minecraft/util/ChunkCoordinates.posX:I
+      48: isub
+      49: istore        4
+      51: iload_2
+      52: bipush        16
+      54: imul
+      55: bipush        8
+      57: iadd
+      58: aload_3
+      59: getfield      #137                // Field net/minecraft/util/ChunkCoordinates.posZ:I
+      62: isub
+      63: istore        5
+      65: sipush        128
+      68: istore        6
+      70: iload         4
+      72: iload         6
+      74: ineg
+      75: if_icmplt     100
+      78: iload         4
+      80: iload         6
+      82: if_icmpgt     100
+      85: iload         5
+      87: iload         6
+      89: ineg
+      90: if_icmplt     100
+      93: iload         5
+      95: iload         6
+      97: if_icmple     118
+     100: aload_0
+     101: getfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+     104: iload_1
+     105: iload_2
+     106: invokestatic  #93                 // Method net/minecraft/world/ChunkCoordIntPair.chunkXZ2Int:(II)J
+     109: invokestatic  #143                // Method java/lang/Long.valueOf:(J)Ljava/lang/Long;
+     112: invokeinterface #149,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     117: pop
+     118: goto          139
+     121: aload_0
+     122: getfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+     125: iload_1
+     126: iload_2
+     127: invokestatic  #93                 // Method net/minecraft/world/ChunkCoordIntPair.chunkXZ2Int:(II)J
+     130: invokestatic  #143                // Method java/lang/Long.valueOf:(J)Ljava/lang/Long;
+     133: invokeinterface #149,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     138: pop
+     139: return
+
+  public void unloadAllChunks();
+    Code:
+       0: aload_0
+       1: getfield      #59                 // Field loadedChunks:Ljava/util/List;
+       4: invokeinterface #164,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       9: astore_1
+      10: aload_1
+      11: invokeinterface #169,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      16: ifeq          44
+      19: aload_1
+      20: invokeinterface #173,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      25: checkcast     #175                // class net/minecraft/world/chunk/Chunk
+      28: astore_2
+      29: aload_0
+      30: aload_2
+      31: getfield      #178                // Field net/minecraft/world/chunk/Chunk.xPosition:I
+      34: aload_2
+      35: getfield      #181                // Field net/minecraft/world/chunk/Chunk.zPosition:I
+      38: invokevirtual #183                // Method unloadChunksIfNotNearSpawn:(II)V
+      41: goto          10
+      44: return
+
+  public net.minecraft.world.chunk.Chunk loadChunk(int, int);
+    Code:
+       0: aload_0
+       1: iload_1
+       2: iload_2
+       3: aconst_null
+       4: invokevirtual #190                // Method loadChunk:(IILjava/lang/Runnable;)Lnet/minecraft/world/chunk/Chunk;
+       7: areturn
+
+  public net.minecraft.world.chunk.Chunk loadChunk(int, int, java.lang.Runnable);
+    Code:
+       0: iload_1
+       1: iload_2
+       2: invokestatic  #93                 // Method net/minecraft/world/ChunkCoordIntPair.chunkXZ2Int:(II)J
+       5: lstore        4
+       7: aload_0
+       8: getfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+      11: lload         4
+      13: invokestatic  #143                // Method java/lang/Long.valueOf:(J)Ljava/lang/Long;
+      16: invokeinterface #195,  2          // InterfaceMethod java/util/Set.remove:(Ljava/lang/Object;)Z
+      21: pop
+      22: aload_0
+      23: getfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+      26: lload         4
+      28: invokevirtual #199                // Method net/minecraft/util/LongHashMap.getValueByKey:(J)Ljava/lang/Object;
+      31: checkcast     #175                // class net/minecraft/world/chunk/Chunk
+      34: astore        6
+      36: aconst_null
+      37: astore        7
+      39: aload_0
+      40: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+      43: instanceof    #201                // class net/minecraft/world/chunk/storage/AnvilChunkLoader
+      46: ifeq          58
+      49: aload_0
+      50: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+      53: checkcast     #201                // class net/minecraft/world/chunk/storage/AnvilChunkLoader
+      56: astore        7
+      58: aload         6
+      60: ifnonnull     118
+      63: aload         7
+      65: ifnull        118
+      68: aload         7
+      70: aload_0
+      71: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      74: iload_1
+      75: iload_2
+      76: invokevirtual #204                // Method net/minecraft/world/chunk/storage/AnvilChunkLoader.chunkExists:(Lnet/minecraft/world/World;II)Z
+      79: ifeq          118
+      82: aload_3
+      83: ifnull        101
+      86: aload_0
+      87: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      90: aload         7
+      92: aload_0
+      93: iload_1
+      94: iload_2
+      95: aload_3
+      96: invokestatic  #210                // Method net/minecraftforge/common/chunkio/ChunkIOExecutor.queueChunkLoad:(Lnet/minecraft/world/World;Lnet/minecraft/world/chunk/storage/AnvilChunkLoader;Lnet/minecraft/world/gen/ChunkProviderServer;IILjava/lang/Runnable;)V
+      99: aconst_null
+     100: areturn
+     101: aload_0
+     102: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+     105: aload         7
+     107: aload_0
+     108: iload_1
+     109: iload_2
+     110: invokestatic  #214                // Method net/minecraftforge/common/chunkio/ChunkIOExecutor.syncChunkLoad:(Lnet/minecraft/world/World;Lnet/minecraft/world/chunk/storage/AnvilChunkLoader;Lnet/minecraft/world/gen/ChunkProviderServer;II)Lnet/minecraft/world/chunk/Chunk;
+     113: astore        6
+     115: goto          131
+     118: aload         6
+     120: ifnonnull     131
+     123: aload_0
+     124: iload_1
+     125: iload_2
+     126: invokevirtual #217                // Method originalLoadChunk:(II)Lnet/minecraft/world/chunk/Chunk;
+     129: astore        6
+     131: aload_3
+     132: ifnull        141
+     135: aload_3
+     136: invokeinterface #222,  1          // InterfaceMethod java/lang/Runnable.run:()V
+     141: aload         6
+     143: areturn
+
+  public net.minecraft.world.chunk.Chunk originalLoadChunk(int, int);
+    Code:
+       0: iload_1
+       1: iload_2
+       2: invokestatic  #93                 // Method net/minecraft/world/ChunkCoordIntPair.chunkXZ2Int:(II)J
+       5: lstore_3
+       6: aload_0
+       7: getfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+      10: lload_3
+      11: invokestatic  #143                // Method java/lang/Long.valueOf:(J)Ljava/lang/Long;
+      14: invokeinterface #195,  2          // InterfaceMethod java/util/Set.remove:(Ljava/lang/Object;)Z
+      19: pop
+      20: aload_0
+      21: getfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+      24: lload_3
+      25: invokevirtual #199                // Method net/minecraft/util/LongHashMap.getValueByKey:(J)Ljava/lang/Object;
+      28: checkcast     #175                // class net/minecraft/world/chunk/Chunk
+      31: astore        5
+      33: aload         5
+      35: ifnonnull     300
+      38: aload_0
+      39: getfield      #67                 // Field loadingChunks:Ljava/util/Set;
+      42: lload_3
+      43: invokestatic  #143                // Method java/lang/Long.valueOf:(J)Ljava/lang/Long;
+      46: invokeinterface #149,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+      51: istore        6
+      53: iload         6
+      55: ifne          97
+      58: ldc           #233                // String There is an attempt to load a chunk (%d,%d) in dimension %d that is already being loaded. This will cause weird chunk breakages.
+      60: iconst_3
+      61: anewarray     #4                  // class java/lang/Object
+      64: dup
+      65: iconst_0
+      66: iload_1
+      67: invokestatic  #238                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      70: aastore
+      71: dup
+      72: iconst_1
+      73: iload_2
+      74: invokestatic  #238                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      77: aastore
+      78: dup
+      79: iconst_2
+      80: aload_0
+      81: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      84: getfield      #110                // Field net/minecraft/world/WorldServer.provider:Lnet/minecraft/world/WorldProvider;
+      87: getfield      #119                // Field net/minecraft/world/WorldProvider.dimensionId:I
+      90: invokestatic  #238                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      93: aastore
+      94: invokestatic  #244                // Method cpw/mods/fml/common/FMLLog.bigWarning:(Ljava/lang/String;[Ljava/lang/Object;)V
+      97: lload_3
+      98: aload_0
+      99: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+     102: invokestatic  #250                // Method net/minecraftforge/common/ForgeChunkManager.fetchDormantChunk:(JLnet/minecraft/world/World;)Lnet/minecraft/world/chunk/Chunk;
+     105: astore        5
+     107: aload         5
+     109: ifnonnull     120
+     112: aload_0
+     113: iload_1
+     114: iload_2
+     115: invokespecial #253                // Method safeLoadChunk:(II)Lnet/minecraft/world/chunk/Chunk;
+     118: astore        5
+     120: aload         5
+     122: ifnonnull     250
+     125: aload_0
+     126: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+     129: ifnonnull     141
+     132: aload_0
+     133: getfield      #74                 // Field defaultEmptyChunk:Lnet/minecraft/world/chunk/Chunk;
+     136: astore        5
+     138: goto          250
+     141: aload_0
+     142: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+     145: iload_1
+     146: iload_2
+     147: invokeinterface #256,  3          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.provideChunk:(II)Lnet/minecraft/world/chunk/Chunk;
+     152: astore        5
+     154: goto          250
+     157: astore        7
+     159: aload         7
+     161: ldc_w         #258                // String Exception generating new chunk
+     164: invokestatic  #264                // Method net/minecraft/crash/CrashReport.makeCrashReport:(Ljava/lang/Throwable;Ljava/lang/String;)Lnet/minecraft/crash/CrashReport;
+     167: astore        8
+     169: aload         8
+     171: ldc_w         #266                // String Chunk to be generated
+     174: invokevirtual #270                // Method net/minecraft/crash/CrashReport.makeCategory:(Ljava/lang/String;)Lnet/minecraft/crash/CrashReportCategory;
+     177: astore        9
+     179: aload         9
+     181: ldc_w         #272                // String Location
+     184: ldc_w         #274                // String %d,%d
+     187: iconst_2
+     188: anewarray     #4                  // class java/lang/Object
+     191: dup
+     192: iconst_0
+     193: iload_1
+     194: invokestatic  #238                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     197: aastore
+     198: dup
+     199: iconst_1
+     200: iload_2
+     201: invokestatic  #238                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     204: aastore
+     205: invokestatic  #280                // Method java/lang/String.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+     208: invokevirtual #286                // Method net/minecraft/crash/CrashReportCategory.addCrashSection:(Ljava/lang/String;Ljava/lang/Object;)V
+     211: aload         9
+     213: ldc_w         #288                // String Position hash
+     216: lload_3
+     217: invokestatic  #143                // Method java/lang/Long.valueOf:(J)Ljava/lang/Long;
+     220: invokevirtual #286                // Method net/minecraft/crash/CrashReportCategory.addCrashSection:(Ljava/lang/String;Ljava/lang/Object;)V
+     223: aload         9
+     225: ldc_w         #290                // String Generator
+     228: aload_0
+     229: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+     232: invokeinterface #294,  1          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.makeString:()Ljava/lang/String;
+     237: invokevirtual #286                // Method net/minecraft/crash/CrashReportCategory.addCrashSection:(Ljava/lang/String;Ljava/lang/Object;)V
+     240: new           #296                // class net/minecraft/util/ReportedException
+     243: dup
+     244: aload         8
+     246: invokespecial #299                // Method net/minecraft/util/ReportedException."<init>":(Lnet/minecraft/crash/CrashReport;)V
+     249: athrow
+     250: aload_0
+     251: getfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+     254: lload_3
+     255: aload         5
+     257: invokevirtual #302                // Method net/minecraft/util/LongHashMap.add:(JLjava/lang/Object;)V
+     260: aload_0
+     261: getfield      #59                 // Field loadedChunks:Ljava/util/List;
+     264: aload         5
+     266: invokeinterface #303,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+     271: pop
+     272: aload_0
+     273: getfield      #67                 // Field loadingChunks:Ljava/util/Set;
+     276: lload_3
+     277: invokestatic  #143                // Method java/lang/Long.valueOf:(J)Ljava/lang/Long;
+     280: invokeinterface #195,  2          // InterfaceMethod java/util/Set.remove:(Ljava/lang/Object;)Z
+     285: pop
+     286: aload         5
+     288: invokevirtual #306                // Method net/minecraft/world/chunk/Chunk.onChunkLoad:()V
+     291: aload         5
+     293: aload_0
+     294: aload_0
+     295: iload_1
+     296: iload_2
+     297: invokevirtual #310                // Method net/minecraft/world/chunk/Chunk.populateChunk:(Lnet/minecraft/world/chunk/IChunkProvider;Lnet/minecraft/world/chunk/IChunkProvider;II)V
+     300: aload         5
+     302: areturn
+    Exception table:
+       from    to  target type
+         141   154   157   Class java/lang/Throwable
+
+  public net.minecraft.world.chunk.Chunk provideChunk(int, int);
+    Code:
+       0: aload_0
+       1: getfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+       4: iload_1
+       5: iload_2
+       6: invokestatic  #93                 // Method net/minecraft/world/ChunkCoordIntPair.chunkXZ2Int:(II)J
+       9: invokevirtual #199                // Method net/minecraft/util/LongHashMap.getValueByKey:(J)Ljava/lang/Object;
+      12: checkcast     #175                // class net/minecraft/world/chunk/Chunk
+      15: astore_3
+      16: aload_3
+      17: ifnonnull     53
+      20: aload_0
+      21: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      24: getfield      #320                // Field net/minecraft/world/WorldServer.findingSpawnPoint:Z
+      27: ifne          44
+      30: aload_0
+      31: getfield      #49                 // Field loadChunkOnProvideRequest:Z
+      34: ifne          44
+      37: aload_0
+      38: getfield      #74                 // Field defaultEmptyChunk:Lnet/minecraft/world/chunk/Chunk;
+      41: goto          54
+      44: aload_0
+      45: iload_1
+      46: iload_2
+      47: invokevirtual #322                // Method loadChunk:(II)Lnet/minecraft/world/chunk/Chunk;
+      50: goto          54
+      53: aload_3
+      54: areturn
+
+  private net.minecraft.world.chunk.Chunk safeLoadChunk(int, int);
+    Code:
+       0: aload_0
+       1: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+       4: ifnonnull     9
+       7: aconst_null
+       8: areturn
+       9: aload_0
+      10: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+      13: aload_0
+      14: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      17: iload_1
+      18: iload_2
+      19: invokeinterface #331,  4          // InterfaceMethod net/minecraft/world/chunk/storage/IChunkLoader.loadChunk:(Lnet/minecraft/world/World;II)Lnet/minecraft/world/chunk/Chunk;
+      24: astore_3
+      25: aload_3
+      26: ifnull        58
+      29: aload_3
+      30: aload_0
+      31: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      34: invokevirtual #335                // Method net/minecraft/world/WorldServer.getTotalWorldTime:()J
+      37: putfield      #338                // Field net/minecraft/world/chunk/Chunk.lastSaveTime:J
+      40: aload_0
+      41: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+      44: ifnull        58
+      47: aload_0
+      48: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+      51: iload_1
+      52: iload_2
+      53: invokeinterface #341,  3          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.recreateStructures:(II)V
+      58: aload_3
+      59: areturn
+      60: astore_3
+      61: getstatic     #343                // Field logger:Lorg/apache/logging/log4j/Logger;
+      64: ldc_w         #345                // String Couldn\'t load chunk
+      67: aload_3
+      68: invokeinterface #351,  3          // InterfaceMethod org/apache/logging/log4j/Logger.error:(Ljava/lang/String;Ljava/lang/Throwable;)V
+      73: aconst_null
+      74: areturn
+    Exception table:
+       from    to  target type
+           9    59    60   Class java/lang/Exception
+
+  private void safeSaveExtraChunkData(net.minecraft.world.chunk.Chunk);
+    Code:
+       0: aload_0
+       1: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+       4: ifnull        37
+       7: aload_0
+       8: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+      11: aload_0
+      12: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      15: aload_1
+      16: invokeinterface #361,  3          // InterfaceMethod net/minecraft/world/chunk/storage/IChunkLoader.saveExtraChunkData:(Lnet/minecraft/world/World;Lnet/minecraft/world/chunk/Chunk;)V
+      21: goto          37
+      24: astore_2
+      25: getstatic     #343                // Field logger:Lorg/apache/logging/log4j/Logger;
+      28: ldc_w         #363                // String Couldn\'t save entities
+      31: aload_2
+      32: invokeinterface #351,  3          // InterfaceMethod org/apache/logging/log4j/Logger.error:(Ljava/lang/String;Ljava/lang/Throwable;)V
+      37: return
+    Exception table:
+       from    to  target type
+           7    21    24   Class java/lang/Exception
+
+  private void safeSaveChunk(net.minecraft.world.chunk.Chunk);
+    Code:
+       0: aload_0
+       1: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+       4: ifnull        64
+       7: aload_1
+       8: aload_0
+       9: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      12: invokevirtual #335                // Method net/minecraft/world/WorldServer.getTotalWorldTime:()J
+      15: putfield      #338                // Field net/minecraft/world/chunk/Chunk.lastSaveTime:J
+      18: aload_0
+      19: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+      22: aload_0
+      23: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      26: aload_1
+      27: invokeinterface #372,  3          // InterfaceMethod net/minecraft/world/chunk/storage/IChunkLoader.saveChunk:(Lnet/minecraft/world/World;Lnet/minecraft/world/chunk/Chunk;)V
+      32: goto          64
+      35: astore_2
+      36: getstatic     #343                // Field logger:Lorg/apache/logging/log4j/Logger;
+      39: ldc_w         #374                // String Couldn\'t save chunk
+      42: aload_2
+      43: invokeinterface #351,  3          // InterfaceMethod org/apache/logging/log4j/Logger.error:(Ljava/lang/String;Ljava/lang/Throwable;)V
+      48: goto          64
+      51: astore_2
+      52: getstatic     #343                // Field logger:Lorg/apache/logging/log4j/Logger;
+      55: ldc_w         #376                // String Couldn\'t save chunk; already in use by another instance of Minecraft?
+      58: aload_2
+      59: invokeinterface #351,  3          // InterfaceMethod org/apache/logging/log4j/Logger.error:(Ljava/lang/String;Ljava/lang/Throwable;)V
+      64: return
+    Exception table:
+       from    to  target type
+           7    32    35   Class java/io/IOException
+           7    32    51   Class net/minecraft/world/MinecraftException
+
+  public void populate(net.minecraft.world.chunk.IChunkProvider, int, int);
+    Code:
+       0: aload_0
+       1: iload_2
+       2: iload_3
+       3: invokevirtual #384                // Method provideChunk:(II)Lnet/minecraft/world/chunk/Chunk;
+       6: astore        4
+       8: aload         4
+      10: getfield      #387                // Field net/minecraft/world/chunk/Chunk.isTerrainPopulated:Z
+      13: ifne          59
+      16: aload         4
+      18: invokevirtual #390                // Method net/minecraft/world/chunk/Chunk.func_150809_p:()V
+      21: aload_0
+      22: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+      25: ifnull        59
+      28: aload_0
+      29: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+      32: aload_1
+      33: iload_2
+      34: iload_3
+      35: invokeinterface #392,  4          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.populate:(Lnet/minecraft/world/chunk/IChunkProvider;II)V
+      40: iload_2
+      41: iload_3
+      42: aload_0
+      43: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      46: aload_0
+      47: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+      50: aload_1
+      51: invokestatic  #398                // Method cpw/mods/fml/common/registry/GameRegistry.generateWorld:(IILnet/minecraft/world/World;Lnet/minecraft/world/chunk/IChunkProvider;Lnet/minecraft/world/chunk/IChunkProvider;)V
+      54: aload         4
+      56: invokevirtual #401                // Method net/minecraft/world/chunk/Chunk.setChunkModified:()V
+      59: return
+
+  public boolean saveChunks(boolean, net.minecraft.util.IProgressUpdate);
+    Code:
+       0: iconst_0
+       1: istore_3
+       2: aload_0
+       3: getfield      #59                 // Field loadedChunks:Ljava/util/List;
+       6: invokestatic  #412                // Method com/google/common/collect/Lists.newArrayList:(Ljava/lang/Iterable;)Ljava/util/ArrayList;
+       9: astore        4
+      11: iconst_0
+      12: istore        5
+      14: iload         5
+      16: aload         4
+      18: invokevirtual #416                // Method java/util/ArrayList.size:()I
+      21: if_icmpge     88
+      24: aload         4
+      26: iload         5
+      28: invokevirtual #420                // Method java/util/ArrayList.get:(I)Ljava/lang/Object;
+      31: checkcast     #175                // class net/minecraft/world/chunk/Chunk
+      34: astore        6
+      36: iload_1
+      37: ifeq          46
+      40: aload_0
+      41: aload         6
+      43: invokespecial #422                // Method safeSaveExtraChunkData:(Lnet/minecraft/world/chunk/Chunk;)V
+      46: aload         6
+      48: iload_1
+      49: invokevirtual #426                // Method net/minecraft/world/chunk/Chunk.needsSaving:(Z)Z
+      52: ifeq          82
+      55: aload_0
+      56: aload         6
+      58: invokespecial #428                // Method safeSaveChunk:(Lnet/minecraft/world/chunk/Chunk;)V
+      61: aload         6
+      63: iconst_0
+      64: putfield      #431                // Field net/minecraft/world/chunk/Chunk.isModified:Z
+      67: iinc          3, 1
+      70: iload_3
+      71: bipush        24
+      73: if_icmpne     82
+      76: iload_1
+      77: ifne          82
+      80: iconst_0
+      81: ireturn
+      82: iinc          5, 1
+      85: goto          14
+      88: iconst_1
+      89: ireturn
+
+  public void saveExtraData();
+    Code:
+       0: aload_0
+       1: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+       4: ifnull        16
+       7: aload_0
+       8: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+      11: invokeinterface #441,  1          // InterfaceMethod net/minecraft/world/chunk/storage/IChunkLoader.saveExtraData:()V
+      16: return
+
+  public boolean unloadQueuedChunks();
+    Code:
+       0: aload_0
+       1: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+       4: getfield      #445                // Field net/minecraft/world/WorldServer.levelSaving:Z
+       7: ifne          276
+      10: aload_0
+      11: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+      14: invokevirtual #449                // Method net/minecraft/world/WorldServer.getPersistentChunks:()Lcom/google/common/collect/ImmutableSetMultimap;
+      17: invokevirtual #455                // Method com/google/common/collect/ImmutableSetMultimap.keySet:()Lcom/google/common/collect/ImmutableSet;
+      20: invokevirtual #458                // Method com/google/common/collect/ImmutableSet.iterator:()Ljava/util/Iterator;
+      23: astore_1
+      24: aload_1
+      25: invokeinterface #169,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      30: ifeq          70
+      33: aload_1
+      34: invokeinterface #173,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      39: checkcast     #89                 // class net/minecraft/world/ChunkCoordIntPair
+      42: astore_2
+      43: aload_0
+      44: getfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+      47: aload_2
+      48: getfield      #461                // Field net/minecraft/world/ChunkCoordIntPair.chunkXPos:I
+      51: aload_2
+      52: getfield      #464                // Field net/minecraft/world/ChunkCoordIntPair.chunkZPos:I
+      55: invokestatic  #93                 // Method net/minecraft/world/ChunkCoordIntPair.chunkXZ2Int:(II)J
+      58: invokestatic  #143                // Method java/lang/Long.valueOf:(J)Ljava/lang/Long;
+      61: invokeinterface #195,  2          // InterfaceMethod java/util/Set.remove:(Ljava/lang/Object;)Z
+      66: pop
+      67: goto          24
+      70: iconst_0
+      71: istore_1
+      72: iload_1
+      73: bipush        100
+      75: if_icmpge     260
+      78: aload_0
+      79: getfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+      82: invokeinterface #467,  1          // InterfaceMethod java/util/Set.isEmpty:()Z
+      87: ifne          254
+      90: aload_0
+      91: getfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+      94: invokeinterface #468,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+      99: invokeinterface #173,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     104: checkcast     #139                // class java/lang/Long
+     107: astore_2
+     108: aload_0
+     109: getfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+     112: aload_2
+     113: invokevirtual #471                // Method java/lang/Long.longValue:()J
+     116: invokevirtual #199                // Method net/minecraft/util/LongHashMap.getValueByKey:(J)Ljava/lang/Object;
+     119: checkcast     #175                // class net/minecraft/world/chunk/Chunk
+     122: astore_3
+     123: aload_3
+     124: ifnull        231
+     127: aload_3
+     128: invokevirtual #474                // Method net/minecraft/world/chunk/Chunk.onChunkUnload:()V
+     131: aload_0
+     132: aload_3
+     133: invokespecial #428                // Method safeSaveChunk:(Lnet/minecraft/world/chunk/Chunk;)V
+     136: aload_0
+     137: aload_3
+     138: invokespecial #422                // Method safeSaveExtraChunkData:(Lnet/minecraft/world/chunk/Chunk;)V
+     141: aload_0
+     142: getfield      #59                 // Field loadedChunks:Ljava/util/List;
+     145: aload_3
+     146: invokeinterface #475,  2          // InterfaceMethod java/util/List.remove:(Ljava/lang/Object;)Z
+     151: pop
+     152: aload_3
+     153: getfield      #178                // Field net/minecraft/world/chunk/Chunk.xPosition:I
+     156: aload_3
+     157: getfield      #181                // Field net/minecraft/world/chunk/Chunk.zPosition:I
+     160: invokestatic  #93                 // Method net/minecraft/world/ChunkCoordIntPair.chunkXZ2Int:(II)J
+     163: aload_3
+     164: invokestatic  #479                // Method net/minecraftforge/common/ForgeChunkManager.putDormantChunk:(JLnet/minecraft/world/chunk/Chunk;)V
+     167: aload_0
+     168: getfield      #59                 // Field loadedChunks:Ljava/util/List;
+     171: invokeinterface #480,  1          // InterfaceMethod java/util/List.size:()I
+     176: ifne          231
+     179: aload_0
+     180: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+     183: invokestatic  #484                // Method net/minecraftforge/common/ForgeChunkManager.getPersistentChunksFor:(Lnet/minecraft/world/World;)Lcom/google/common/collect/ImmutableSetMultimap;
+     186: invokevirtual #485                // Method com/google/common/collect/ImmutableSetMultimap.size:()I
+     189: ifne          231
+     192: aload_0
+     193: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+     196: getfield      #110                // Field net/minecraft/world/WorldServer.provider:Lnet/minecraft/world/WorldProvider;
+     199: getfield      #119                // Field net/minecraft/world/WorldProvider.dimensionId:I
+     202: invokestatic  #125                // Method net/minecraftforge/common/DimensionManager.shouldLoadSpawn:(I)Z
+     205: ifne          231
+     208: aload_0
+     209: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+     212: getfield      #110                // Field net/minecraft/world/WorldServer.provider:Lnet/minecraft/world/WorldProvider;
+     215: getfield      #119                // Field net/minecraft/world/WorldProvider.dimensionId:I
+     218: invokestatic  #489                // Method net/minecraftforge/common/DimensionManager.unloadWorld:(I)V
+     221: aload_0
+     222: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+     225: invokeinterface #491,  1          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.unloadQueuedChunks:()Z
+     230: ireturn
+     231: aload_0
+     232: getfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+     235: aload_2
+     236: invokeinterface #195,  2          // InterfaceMethod java/util/Set.remove:(Ljava/lang/Object;)Z
+     241: pop
+     242: aload_0
+     243: getfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+     246: aload_2
+     247: invokevirtual #471                // Method java/lang/Long.longValue:()J
+     250: invokevirtual #493                // Method net/minecraft/util/LongHashMap.remove:(J)Ljava/lang/Object;
+     253: pop
+     254: iinc          1, 1
+     257: goto          72
+     260: aload_0
+     261: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+     264: ifnull        276
+     267: aload_0
+     268: getfield      #78                 // Field currentChunkLoader:Lnet/minecraft/world/chunk/storage/IChunkLoader;
+     271: invokeinterface #496,  1          // InterfaceMethod net/minecraft/world/chunk/storage/IChunkLoader.chunkTick:()V
+     276: aload_0
+     277: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+     280: invokeinterface #491,  1          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.unloadQueuedChunks:()Z
+     285: ireturn
+
+  public boolean canSave();
+    Code:
+       0: aload_0
+       1: getfield      #76                 // Field worldObj:Lnet/minecraft/world/WorldServer;
+       4: getfield      #445                // Field net/minecraft/world/WorldServer.levelSaving:Z
+       7: ifne          14
+      10: iconst_1
+      11: goto          15
+      14: iconst_0
+      15: ireturn
+
+  public java.lang.String makeString();
+    Code:
+       0: new           #504                // class java/lang/StringBuilder
+       3: dup
+       4: invokespecial #505                // Method java/lang/StringBuilder."<init>":()V
+       7: ldc_w         #507                // String ServerChunkCache:
+      10: invokevirtual #511                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      13: aload_0
+      14: getfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+      17: invokevirtual #514                // Method net/minecraft/util/LongHashMap.getNumHashElements:()I
+      20: invokevirtual #517                // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+      23: ldc_w         #519                // String  Drop:
+      26: invokevirtual #511                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      29: aload_0
+      30: getfield      #47                 // Field chunksToUnload:Ljava/util/Set;
+      33: invokeinterface #520,  1          // InterfaceMethod java/util/Set.size:()I
+      38: invokevirtual #517                // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+      41: invokevirtual #523                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      44: areturn
+
+  public java.util.List getPossibleCreatures(net.minecraft.entity.EnumCreatureType, int, int, int);
+    Code:
+       0: aload_0
+       1: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+       4: aload_1
+       5: iload_2
+       6: iload_3
+       7: iload         4
+       9: invokeinterface #527,  5          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.getPossibleCreatures:(Lnet/minecraft/entity/EnumCreatureType;III)Ljava/util/List;
+      14: areturn
+
+  public net.minecraft.world.ChunkPosition func_147416_a(net.minecraft.world.World, java.lang.String, int, int, int);
+    Code:
+       0: aload_0
+       1: getfield      #80                 // Field currentChunkProvider:Lnet/minecraft/world/chunk/IChunkProvider;
+       4: aload_1
+       5: aload_2
+       6: iload_3
+       7: iload         4
+       9: iload         5
+      11: invokeinterface #536,  6          // InterfaceMethod net/minecraft/world/chunk/IChunkProvider.func_147416_a:(Lnet/minecraft/world/World;Ljava/lang/String;III)Lnet/minecraft/world/ChunkPosition;
+      16: areturn
+
+  public int getLoadedChunkCount();
+    Code:
+       0: aload_0
+       1: getfield      #54                 // Field loadedChunkHashMap:Lnet/minecraft/util/LongHashMap;
+       4: invokevirtual #514                // Method net/minecraft/util/LongHashMap.getNumHashElements:()I
+       7: ireturn
+
+  public void recreateStructures(int, int);
+    Code:
+       0: return
+
+  static {};
+    Code:
+       0: invokestatic  #552                // Method org/apache/logging/log4j/LogManager.getLogger:()Lorg/apache/logging/log4j/Logger;
+       3: putstatic     #343                // Field logger:Lorg/apache/logging/log4j/Logger;
+       6: return
+}

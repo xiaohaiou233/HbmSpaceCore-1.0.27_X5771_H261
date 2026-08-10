@@ -206,18 +206,9 @@ public class WorldProviderOrbit extends WorldProvider {
 	// Same shit as in Celestial
 	@Override
 	public int getRespawnDimension(EntityPlayerMP player) {
-		ChunkCoordinates coords = player.getBedLocation(dimensionId);
-
-		// If no bed, respawn in overworld
-		if(coords == null)
-			return 0;
-
-		// If the bed location has no breathable atmosphere, respawn in overworld
-		CBT_Atmosphere atmosphere = ChunkAtmosphereManager.proxy.getAtmosphere(worldObj, coords.posX, coords.posY, coords.posZ);
-		if(!ChunkAtmosphereManager.proxy.canBreathe(atmosphere))
-			return 0;
-
-		return dimensionId;
+		// ==== [modpack] 重生维度：床记录 → 床所在维度；否则 hasLanded ? Duna : SPAWN
+		// （详见 SpawnTeleporter.resolveRespawnDimension）
+		return com.hbm.dim.spawn.SpawnTeleporter.resolveRespawnDimension(player);
 	}
 
 	@Override

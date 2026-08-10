@@ -67,6 +67,11 @@ cd "$SAVED" >&-
 
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
+# ==== [modpack] 锁定构建 JDK 为 Java 8（Gradle 5.6.4 不支持系统默认的 Java 21）====
+if [ -d "/e/JAVA/java8" ] && [ -z "$HBM_USE_SYSTEM_JAVA" ] ; then
+    JAVA_HOME="/e/JAVA/java8"
+fi
+
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then

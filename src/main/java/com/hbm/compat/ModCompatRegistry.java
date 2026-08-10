@@ -21,6 +21,7 @@ public final class ModCompatRegistry {
 	public static void registerAll() {
 		register(new AeFix());
 		register(new WirelessCraftingTerminalFix());
+		register(new NeiFix());
 	}
 
 	public static void register(IModCompat compat) {

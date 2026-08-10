@@ -12,7 +12,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath ('com.anatawa12.forge:ForgeGradle:1.2-1.0.+') {changing = true}
+		classpath ('com.anatawa12.forge:ForgeGradle:1.2-1.1.+') {changing = true}
 	}
 }
 
@@ -36,7 +36,8 @@ if(!mod_build_number.isEmpty()) {
 	version = "[${version_name}]"
 }
 group = "com.hbm" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "HBM-NTM"
+// ==== [modpack] jar 输出名改为 HBMcore（保留版本号 [X..._H261]；modid 仍是 mcmod.info 的 hbm）
+archivesBaseName = "HBMcore"
 compileJava.options.encoding = 'UTF-8'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
@@ -44,6 +45,13 @@ sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = co
 minecraft {
 	version = "1.7.10-10.13.4.1614-1.7.10"
 	runDir = "eclipse"
+}
+
+// ==== [modpack] 编译提速：跳过 FG 的 sourceMainJava 全量拷贝中转，让 compileJava 直接增量编译 src/main/java
+// FG 的 SourceCopyTask 每次执行都会 deleteDir + 全量重写 build/sources/java，导致改一个文件就全量重编译所有类
+compileJava {
+	source = sourceSets.main.java
+	dependsOn = dependsOn.findAll { !it.toString().contains('sourceMainJava') }
 }
 
 // A little hack to fix codechicken's crazy maven structure (at least in 1.7.10)
@@ -100,14 +108,20 @@ repositories {
 }
 
 dependencies {
-	implementation('codechicken:CodeChickenCore:1.7.10-1.0.4.29:dev') { transitive = false }
+	compileOnly('codechicken:CodeChickenCore:1.7.10-1.0.4.29:dev') { transitive = false }
 	compileOnly('codechicken:CodeChickenCore:1.7.10-1.0.4.29:src') { transitive = false }
 
-	implementation('codechicken:CodeChickenLib:1.7.10-1.1.3.140:dev') { transitive = false }
+	compileOnly('codechicken:CodeChickenLib:1.7.10-1.1.3.140:dev') { transitive = false }
 	compileOnly('codechicken:CodeChickenLib:1.7.10-1.1.3.140:src') { transitive = false }
 
-	implementation('codechicken:NotEnoughItems:1.7.10-1.0.3.74:dev') { transitive = false }
+	compileOnly('codechicken:NotEnoughItems:1.7.10-1.0.3.74:dev') { transitive = false }
 	compileOnly('codechicken:NotEnoughItems:1.7.10-1.0.3.74:src') { transitive = false }
+
+	// ==== [modpack] 开发辅助：运行时用 GTNH 版 codechicken 全家桶 + WAILA（编译仍用上面的原版 API）
+	runtimeOnly files('libs/gtnh-dev/CodeChickenCore-1.4.16-deobf.jar')
+	runtimeOnly files('libs/gtnh-dev/CodeChickenLib-1.3.0-deobf.jar')
+	runtimeOnly files('libs/gtnh-dev/NotEnoughItems-2.8.104-GTNH-deobf.jar')
+	runtimeOnly files('libs/gtnh-dev/Waila-1.5.10_1.7.10-deobf.jar')
 
 	compileOnly("inventorytweaks:InventoryTweaks:1.59-dev:deobf") { transitive = false }
 
@@ -141,10 +155,57 @@ processResources {
 	}
 }
 
+// ==== [modpack] reobf 后自动补 ZIP 目录条目
+// reobf(SpecialSource) 重打包时会剥离空目录条目；OC 等依赖 clazz.getResource("assets/xxx/dir/") 检测目录会失败。
+// 这里在 reobf 之后对产物 jar 重写一遍，把缺失的目录条目补回。build 产出的 jar 直接可用，无需手动 -fixed。
+reobf.doLast {
+	def jarFile = tasks.jar.archivePath
+	if(!jarFile.exists()) return
+
+	// 收集所有条目隐含的父目录路径（如 "assets/hbm/lang/zh_CN.lang" → "assets/","assets/hbm/","assets/hbm/lang/"）
+	def dirs = new TreeSet<String>()
+	new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
+		zip.entries().each { e ->
+			def name = e.getName()
+			def idx = name.indexOf('/')
+			while(idx >= 0) {
+				dirs.add(name.substring(0, idx + 1))
+				idx = name.indexOf('/', idx + 1)
+			}
+		}
+	}
+
+	// 只补缺失的目录条目，其余原样拷贝
+	def tmp = new File(jarFile.getParentFile(), jarFile.getName() + ".dirtmp")
+	new java.util.zip.ZipOutputStream(new java.io.FileOutputStream(tmp)).withCloseable { zout ->
+		new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
+			zip.entries().each { e ->
+				zout.putNextEntry(new java.util.zip.ZipEntry(e.getName()))
+				if(!e.isDirectory()) {
+					zout.write(zip.getInputStream(e).bytes)
+				}
+				zout.closeEntry()
+			}
+		}
+		dirs.each { d ->
+			if(!d.endsWith("/")) return
+			zout.putNextEntry(new java.util.zip.ZipEntry(d))
+			zout.closeEntry()
+		}
+	}
+	java.nio.file.Files.move(tmp.toPath(), jarFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+	println "[modpack] reobf: re-added ${dirs.size()} directory entries to ${jarFile.getName()}"
+}
+
 // add AT to meta-inf
 jar {
     manifest {
         attributes 'FMLAT': 'HBM_at.cfg'
+        // ==== [modpack] coremod：注入 vanilla respawnPlayer 接管重生位置
+        // prod（整合包）：FML 扫 mods/ 里 jar 的 manifest 发现 FMLCorePlugin
+        attributes 'FMLCorePlugin': 'com.hbm.core.HbmLoadingPlugin'
+        // 同 jar 混合 coremod + @Mod：FML 先挂 transformer，再当普通 mod 加载
+        attributes 'FMLCorePluginContainsFMLMod': 'true'
     }
 }
 

@@ -75,17 +75,41 @@ public class EntityEscapePod extends EntityRideableRocket {
 	@Override
 	protected void onImpact(MovingObjectPosition mop) {
 		super.onImpact(mop);
-		// [modpack] 落地（裸舱 stages==0 → 安全 LANDED）：设重生点 + 就地转成降落仓
-		if(getState() == RocketState.LANDED) {
-			if(!worldObj.isRemote) {
-				if(riddenByEntity instanceof EntityPlayer) {
-					SpawnTeleporter.setLanded((EntityPlayer) riddenByEntity, (int)posX, (int)posY, (int)posZ);
-				}
-				EntityLootPod pod = new EntityLootPod(worldObj, posX, posY, posZ);
-				worldObj.spawnEntityInWorld(pod);
-				setDead();
-			}
+		// [modpack] 落地（裸舱 stages==0 → 安全 LANDED）：只设重生点。
+		// 不在此转降落仓/销毁 —— 让玩家按 shift 正常下舱（复用原版下舱方式），下舱后由 onUpdate 转换
+		if(getState() == RocketState.LANDED && !worldObj.isRemote && riddenByEntity instanceof EntityPlayer) {
+			SpawnTeleporter.setLanded((EntityPlayer) riddenByEntity, (int)posX, (int)posY, (int)posZ);
 		}
 	}
 
+	@Override
+	public void onUpdate() {
+		// [perf] 临时监测：逃生舱每 tick 逻辑耗时（含父类飞行状态机）
+		long t0 = System.nanoTime();
+		super.onUpdate();
+		// [modpack] 玩家下舱后（LANDED 且无乘员）→ 就地转成降落仓（服务端）
+		// 停靠于接口时是 AWAITING，不会触发；落地后 LANDED，shift 下舱后 riddenByEntity 为空 → 转换
+		if(!worldObj.isRemote && getState() == RocketState.LANDED && riddenByEntity == null) {
+			EntityLootPod pod = new EntityLootPod(worldObj, posX, posY, posZ);
+			worldObj.spawnEntityInWorld(pod);
+			setDead();
+		}
+		long t1 = System.nanoTime();
+		if(t1 - t0 > 5_000_000) {
+			com.hbm.main.MainRegistry.logger.info("[perf] escapePod.onUpdate took " + ((t1 - t0) / 1000000) + "ms, state=" + getState() + " pos=" + (int)posX + "," + (int)posY + "," + (int)posZ);
+		}
+	}
+
+	@Override
+	public boolean canBePushed() {
+		// [modpack] 停靠(AWAITING)于端口时不可被玩家/实体撞离端口（原版 canBePushed=true 会被撞得水平漂移，
+		// AWAITING 分支又每 tick 只清 motion 不回锚 → docked 状态与位置脱节）；飞行/落地仍可推（原版行为）
+		return getState() != RocketState.AWAITING;
+	}
+
+	@Override
+	public boolean isEntityInvulnerable()
+	{
+		return getState() == RocketState.AWAITING;
+	}
 }

@@ -7,6 +7,9 @@ import net.minecraft.util.ResourceLocation;
 
 public class StructureManager {
 
+	// ==== [modpack] 出生维度空间站（玩家出生地的破烂空间站，23×7×19，接口核心局部坐标 (14,0,4)）
+	public static final NBTStructure spawn_station = new NBTStructure(new ResourceLocation(RefStrings.MODID, "structures/spawn_station.nbt"));
+
 	// METEOR DUNGEON
 	public static final NBTStructure meteor_spike = new NBTStructure(new ResourceLocation(RefStrings.MODID, "structures/meteor/meteor-spike.nbt"));
 	public static final NBTStructure meteor_core = new NBTStructure(new ResourceLocation(RefStrings.MODID, "structures/meteor/meteor-core.nbt"));

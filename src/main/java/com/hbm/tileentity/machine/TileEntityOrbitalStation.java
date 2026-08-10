@@ -227,6 +227,19 @@ public class TileEntityOrbitalStation extends TileEntityMachineBase implements I
 			if(docked != null && (docked.isDead || docked.getState() == RocketState.UNDOCKING)) {
 				undockRocket();
 			}
+			// ==== [modpack] 世界重载后 docked 丢失（TE 不持久化实体引用）但逃生舱实体仍在端口附近：
+			// 扫描 AWAITING 逃生舱重新停靠，否则端口忘掉舱、hasDocked 假、enterCapsule 失效。
+			// 节流每 20 tick（1s）扫一次，避免空端口时每 tick 遍历实体列表
+			if(docked == null && worldObj.getTotalWorldTime() % 20 == 0) {
+				AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(xCoord - 2, yCoord - 5, zCoord - 2, xCoord + 3, yCoord + 3, zCoord + 3);
+				for(Object o : worldObj.getEntitiesWithinAABB(EntityEscapePod.class, aabb)) {
+					EntityEscapePod pod = (EntityEscapePod) o;
+					if(!pod.isDead && pod.getState() == RocketState.AWAITING) {
+						docked = pod;
+						break;
+					}
+				}
+			}
 			if(docked != null && docked.getState() != RocketState.AWAITING) {
 				docked.setState(RocketState.AWAITING);
 			}
@@ -247,9 +260,19 @@ public class TileEntityOrbitalStation extends TileEntityMachineBase implements I
 		}
 	}
 
-	// [modpack] 停靠逃生舱
+	// [modpack] 停靠逃生舱（吊顶停靠：端口是空间站着陆口，逃生舱挂在端口下方、发射时向下抛出 —— 用户确认原模型位置正确，勿改地板停靠）
 	public void spawnEscapePod() {
 		if(docked != null) return;
+		// ==== [modpack] 曾误改地板停靠（posY=yCoord+1.25）被用户纠正回退：端口是着陆口，吊顶公式 posY -= height 正确。
+		// ==== [modpack] 防叠舱：世界重载后 docked 丢失但逃生舱实体仍在端口附近 → 扫描到 AWAITING 舱则重新停靠，不叠生
+		AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(xCoord - 2, yCoord - 5, zCoord - 2, xCoord + 3, yCoord + 3, zCoord + 3);
+		for(Object o : worldObj.getEntitiesWithinAABB(EntityEscapePod.class, aabb)) {
+			EntityEscapePod pod = (EntityEscapePod) o;
+			if(!pod.isDead && pod.getState() == RocketState.AWAITING) {
+				docked = pod;
+				return;
+			}
+		}
 		EntityEscapePod pod = new EntityEscapePod(worldObj, xCoord + 0.5F, yCoord + 1.5F, zCoord + 0.5F);
 		pod.posY -= pod.height;
 		pod.setState(RocketState.AWAITING);

@@ -22,14 +22,17 @@ public class MapGenPlateau extends MapGenBase {
 
 	public BiomeGenBase applyToBiome;
 
+	// [perf] P2：原每 chunk new int[16][16]×2（34 个小数组）。提为字段复用，
+	// func_151539_a 全量覆盖写 16×16，无需清空，零分配。
+	private final int[][] plateauTops = new int[16][16];
+	private final int[][] baseHeights = new int[16][16];
+
 	public MapGenPlateau(World world) {
 		this.plateauNoise = new NoiseGeneratorPerlin(world.rand, 4);
 	}
 
 	@Override
 	public void func_151539_a(IChunkProvider provider, World world, int chunkX, int chunkZ, Block[] blocks) {
-		int[][] plateauTops = new int[16][16];
-		int[][] baseHeights = new int[16][16];
 		for(int localX = 0; localX < 16; localX++) {
 			for(int localZ = 0; localZ < 16; localZ++) {
 				int baseHeight = getSurfaceHeight(blocks, localX, localZ);

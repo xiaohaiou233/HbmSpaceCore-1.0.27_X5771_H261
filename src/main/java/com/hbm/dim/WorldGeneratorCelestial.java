@@ -167,6 +167,10 @@ public class WorldGeneratorCelestial implements IWorldGenerator {
 		if(world.provider.dimensionId == 0)
 			return;
 
+		// ==== [modpack] 出生维度是虚空站，无矿石生成
+		if(world.provider instanceof com.hbm.dim.spawn.WorldProviderSpawn)
+			return;
+
 		WorldProviderCelestial celestialProvider = (WorldProviderCelestial)world.provider;
 		Block blockToReplace = celestialProvider.getStone();
 		FluidStack drillAcid = celestialProvider.getBedrockAcid();

@@ -1,6 +1,7 @@
 package com.hbm.dim.duna;
 
 import com.hbm.blocks.ModBlocks;
+import com.hbm.config.SpaceConfig;
 import com.hbm.dim.WorldChunkManagerCelestial;
 import com.hbm.dim.WorldProviderCelestial;
 import com.hbm.dim.WorldTypeTeleport;
@@ -139,13 +140,9 @@ public class WorldProviderDuna extends WorldProviderCelestial {
 
 	@Override
 	public int getRespawnDimension(EntityPlayerMP player) {
-		// BRING
-		//  HIM
-		// HOMIE
-		if(worldObj.getWorldInfo().getTerrainType() == WorldTypeTeleport.martian)
-			return dimensionId;
-
-		return super.getRespawnDimension(player);
+		// ==== [modpack] 重生维度：床记录 → 床所在维度；否则 hasLanded ? Duna : SPAWN
+		// （详见 SpawnTeleporter.resolveRespawnDimension）
+		return com.hbm.dim.spawn.SpawnTeleporter.resolveRespawnDimension(player);
 	}
 
 	private static BiomeGenLayers createBiomeGenerators(long seed) {

@@ -24,11 +24,14 @@ import com.hbm.config.MobConfig;
 import com.hbm.config.RadiationConfig;
 import com.hbm.config.ServerConfig;
 import com.hbm.config.SpaceConfig;
+import com.hbm.core.HbmDeathDropHook;
 import com.hbm.dim.CelestialBody;
 import com.hbm.dim.CelestialTeleporter;
 import com.hbm.dim.SolarSystemWorldSavedData;
 import com.hbm.dim.WorldGeneratorCelestial;
 import com.hbm.dim.WorldProviderCelestial;
+import com.hbm.dim.spawn.SpawnTeleporter;
+import com.hbm.dim.spawn.WorldProviderSpawn;
 import com.hbm.dim.WorldProviderEarth;
 import com.hbm.dim.WorldTypeTeleport;
 import com.hbm.dim.orbit.OrbitalStation;
@@ -91,6 +94,7 @@ import com.hbm.potion.HbmPotion;
 import com.hbm.saveddata.satellites.SatelliteDetector;
 import com.hbm.saveddata.satellites.SatelliteRayScan;
 import com.hbm.tileentity.machine.TileEntityMachineRadarNT;
+import com.hbm.tileentity.machine.TileEntityOrbitalStation;
 import com.hbm.tileentity.machine.rbmk.RBMKDials;
 import com.hbm.tileentity.network.RTTYSystem;
 import com.hbm.tileentity.network.RequestNetwork;
@@ -154,6 +158,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
@@ -196,6 +201,22 @@ public class ModEventHandler {
 
 	private static Random rand = new Random();
 
+	// ==== [modpack] 首次加入直接诞生在 SPAWN：vanilla 登录固定把新玩家建在主世界(dim 0)，
+	// 先发 S01(dim 0) 再下一 tick 传送。LoadFromFile 在 initializeConnectionToPlayer 的
+	// readPlayerDataFromFile(123行) 时触发，早于选世界(125行)和 S01(148行) —— 在这里把
+	// 新玩家的 dimension 预置成 SPAWN，客户端首个 S01 就是 SPAWN，全程不碰主世界。
+	// 老玩家维度由 NBT 恢复（LoadFromFile 在 readFromNBT 之后触发），不受影响。
+	@SubscribeEvent
+	public void onPlayerLoading(net.minecraftforge.event.entity.player.PlayerEvent.LoadFromFile event) {
+		EntityPlayer player = event.entityPlayer;
+		if(player.worldObj.isRemote) return;
+
+		// 只处理首次加入（还没被打过 respawnDim 标记）；已有标记的老玩家维度交给 NBT
+		if(SpawnTeleporter.isFirstJoin(player)) {
+			player.dimension = SpaceConfig.spawnDimension;
+		}
+	}
+
 	@SubscribeEvent
 	public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
 
@@ -234,14 +255,21 @@ public class ModEventHandler {
 				}
 			}*/
 
-			if(event.player.worldObj.getWorldInfo().getTerrainType() instanceof WorldTypeTeleport) {
-				HbmPlayerProps props = HbmPlayerProps.getData(event.player);
+			// ==== [modpack] 首次加入 → 传送到出生维度（替代原 martian 世界类型传送）
+			HbmPlayerProps props = HbmPlayerProps.getData(event.player);
 
-				if(!props.hasWarped) {
-					WorldTypeTeleport teleport = (WorldTypeTeleport) event.player.worldObj.getWorldInfo().getTerrainType();
-					teleport.onPlayerJoin(event.player);
-					props.hasWarped = true;
+			if(!props.hasWarped) {
+				SpawnTeleporter.teleportToSpawn(event.player);
+
+				// ==== [modpack] 首次加入 → 按模板发护甲（纯模板驱动：无模板则静默跳过，见 SpawnArmorTemplate）
+				// 坏模板绝不阻塞登录；hasWarped 放在 apply 之后，本次失败下次登录不再重试
+				try {
+					com.hbm.dim.spawn.SpawnArmorTemplate.applyToPlayer(event.player);
+				} catch(Exception e) {
+					MainRegistry.logger.warn("[hbmcore] SpawnArmorTemplate.applyToPlayer failed", e);
 				}
+
+				props.hasWarped = true;
 			}
 
 			if(GeneralConfig.enableServerRecipeSync && FMLCommonHandler.instance().getSide() == Side.SERVER && event.player instanceof EntityPlayerMP) {
@@ -277,6 +305,9 @@ public class ModEventHandler {
 
 		EntityPlayer player = event.player;
 
+		// ==== [modpack] onPlayerRespawn 位置移动已移除：位置决策由 coremod 注入（HbmRespawnHook → resolveRespawnPosition）统一处理。
+		// 注入点在 vanilla loadChunk 之前设好坐标，确保正确位置+消除卡顿。此处不再做任何位置覆盖。
+
 		if((player.getUniqueID().toString().equals(ShadyUtil.Dr_Nostalgia) || player.getDisplayName().equals("Dr_Nostalgia")) && !player.worldObj.isRemote) {
 
 			if(!player.inventory.hasItem(ModItems.hat))
@@ -284,6 +315,17 @@ public class ModEventHandler {
 
 			if(!player.inventory.hasItem(ModItems.beta))
 				player.inventory.addItemStackToInventory(new ItemStack(ModItems.beta));
+		}
+	}
+
+	@SubscribeEvent
+	public void onPlayerWake(net.minecraftforge.event.entity.player.PlayerWakeUpEvent event) {
+		// [modpack] 睡床 → 复活维度锚定床所在维度（异地复活，如空间站/火星/轨道放床）
+		if(!event.entityPlayer.worldObj.isRemote) {
+			int dim = event.entityPlayer.dimension;
+			SpawnTeleporter.setRespawnDimension(event.entityPlayer, dim);
+			// [perf] 诊断：确认睡床事件是否触发 + respawnDim 写入
+			MainRegistry.logger.info("[hbmcore] onPlayerWake fired, dim=" + dim + ", respawnDim set to " + SpawnTeleporter.getRespawnDim(event.entityPlayer));
 		}
 	}
 
@@ -737,6 +779,15 @@ public class ModEventHandler {
 					EntityPlayer player = (EntityPlayer) event.entityLiving;
 					if(player.isSneaking()) event.entityLiving.motionY -= 0.01F;
 					if(player.isJumping) event.entityLiving.motionY += 0.01F;
+					// ==== [modpack] B4 修复：清 0 重力逻辑产生的非主动上抛。
+					// 下方 motionY += 0.08（本意抵消 vanilla 的 -0.08 重力）因 LivingUpdateEvent 时序
+					// 变成当 tick 向上速度（×0.91≈0.073），每 tick 重复 → 出生/重生瞬间"飘一下、衰减停"
+					// （实测 motionY≈0.0728）。保留主动操作：跳跃 isJumping、喷气背包 isJetpackActive。
+					// 任何非主动向上的 motionY 一律清 0。根因详见 [[respawn-upward-velocity-rootcause]]。
+					HbmPlayerProps dbgProps = HbmPlayerProps.getData(player);
+					if(event.entityLiving.motionY > 0 && !player.isJumping && !dbgProps.isJetpackActive()) {
+						event.entityLiving.motionY = 0;
+					}
 				} else if(event.entity instanceof EntityChicken) {
 					event.entityLiving.motionY = 0;
 				}
@@ -761,6 +812,7 @@ public class ModEventHandler {
 		}
 
 		ItemStack[] prevArmor = event.entityLiving.previousEquipment;
+
 
 		if(event.entityLiving instanceof EntityPlayerMP && prevArmor != null && event.entityLiving.getHeldItem() != null
 				&& (prevArmor[0] == null || prevArmor[0].getItem() != event.entityLiving.getHeldItem().getItem())
@@ -869,6 +921,21 @@ public class ModEventHandler {
 				if(e instanceof EntityPlayer) {
 					EntityPlayer player = (EntityPlayer) e;
 
+					// ==== [modpack] 出生维度传送完成后设置重生点（床位置），维度内死亡重生回出生石头
+					if(!event.world.isRemote && player.dimension == SpaceConfig.spawnDimension && player.getEntityData().getBoolean(SpawnTeleporter.PENDING_SPAWN_TAG)) {
+						// 1.7.10 setSpawnChunk 收 ChunkCoordinates；重生点 = 玩家出生网格中心
+						// ==== [modpack] SPAWN 假床已废弃：重生位置改由 coremod HbmRespawnHook 接管。
+						// 假床用 setSpawnChunk(forceSpawn=true) 会让 vanilla 跑"脚下必须非实心+空气"安全判定，
+						// 太空 0 重力下误判 + 每次死亡必弹"床遗失"；移除后 SPAWN 死亡走 vanilla 世界出生点兜底
+						// （teleportToSpawn 已把 SPAWN 世界出生点设成网格中心），coremod 再补 findSafeSpawnY 精确落位。
+						//player.setSpawnChunk(new ChunkCoordinates(SpawnTeleporter.getSpawnX(player), SpawnTeleporter.SPAWN_Y, SpawnTeleporter.getSpawnZ(player)), true);
+						// ==== [modpack] 出生刚落地这 tick 也清一次 motion（配合 CelestialTeleporter.placeInPortal），抵消"脱离卡死"上抛
+						player.motionX = 0;
+						player.motionY = 0;
+						player.motionZ = 0;
+						player.getEntityData().setBoolean(SpawnTeleporter.PENDING_SPAWN_TAG, false);
+					}
+
 					// handle dismount events, or our players will splat upon leaving tall rockets
 					if(player.ridingEntity != null && player.ridingEntity instanceof EntityRideableRocket && player.isSneaking()) {
 						EntityRideableRocket rocket = (EntityRideableRocket) player.ridingEntity;
@@ -882,7 +949,18 @@ public class ModEventHandler {
 
 								ridingEntity.height = inOrbit ? ridingEntity.height + 1.0F : 1.0F;
 								player.mountEntity(null);
-								if(!inOrbit) player.setPositionAndUpdate(player.posX + 2, player.posY, player.posZ);
+								// ==== [modpack] 停靠于接口的火箭下舱 → SPAWN 维度站到接口上表面（否则会出现在接口下方掉出空间站）
+								// 用 prevHeight（未临时修改的高度）定位火箭顶部 → 解析接口核心
+								// 注意：原版 +2 X 偏移会撞进接口的 dummy 臂（fillSpace 在 x/z±2, y+1 放构件），所以直接站接口正上方
+								// ORBIT 维度保持原版行为（0 重力漂浮，不重定位）
+								if(event.world.provider.dimensionId == SpaceConfig.spawnDimension) {
+									TileEntity te = CompatExternal.getCoreFromPos(event.world, MathHelper.floor_double(rocket.posX), MathHelper.floor_double(rocket.posY + prevHeight - 1.0D), MathHelper.floor_double(rocket.posZ));
+									if(te instanceof TileEntityOrbitalStation) {
+										player.setPositionAndUpdate(te.xCoord + 0.5, te.yCoord + 1.0D, te.zCoord + 0.5);
+									}
+								} else if(!inOrbit) {
+									player.setPositionAndUpdate(player.posX + 2, player.posY, player.posZ);
+								}
 								ridingEntity.height = prevHeight;
 							} else {
 								rocket.forceExitTimer++;
@@ -938,7 +1016,12 @@ public class ModEventHandler {
 			updateWaterOpacity(event.world);
 		}
 
-		if(event.phase == Phase.START && event.world.provider.dimensionId == SpaceConfig.orbitDimension) {
+		// ==== [modpack] 出生维度（SpaceConfig.spawnDimension）同为 0 重力空间：掉落物也需漂浮
+		// 原代码只处理 orbitDimension（413_023），出生维度掉落物会正常下落，与玩家/生物漂浮矛盾
+		// 复用 ORBIT 完全相同的机制：把 motionY 预置为原版重力常量，每 tick 抵消后归 0
+		if(event.phase == Phase.START && (event.world.provider.dimensionId == SpaceConfig.orbitDimension || event.world.provider.dimensionId == SpaceConfig.spawnDimension)) {
+			// [perf] 临时监测：实体遍历耗时（物品多时可能卡）
+			long t0 = System.nanoTime();
 			for(Object o : event.world.loadedEntityList) {
 				if(o instanceof EntityItem) {
 					EntityItem item = (EntityItem) o;
@@ -946,6 +1029,10 @@ public class ModEventHandler {
 					item.motionY = 0.03999999910593033D; // when entity gravity is applied, this becomes exactly 0
 					item.motionZ *= 0.9D;
 				}
+			}
+			long t1 = System.nanoTime();
+			if(t1 - t0 > 5_000_000) {
+				com.hbm.main.MainRegistry.logger.info("[perf] item-float loop took " + ((t1 - t0) / 1000000) + "ms, loadedEntities=" + event.world.loadedEntityList.size());
 			}
 		}
 		//if(event.phase == Phase.END) {
@@ -1374,7 +1461,8 @@ public class ModEventHandler {
 
 		if(!player.worldObj.isRemote && event.phase == TickEvent.Phase.START) {
 			// Check for players attempting to cross over to another orbital grid
-			if(player.worldObj.provider instanceof WorldProviderOrbit && !(player.ridingEntity instanceof EntityRideableRocket)) {
+			// [modpack] hbmcore_falling 防重复触发（同出生维度掉出）
+			if(player.worldObj.provider instanceof WorldProviderOrbit && !(player.ridingEntity instanceof EntityRideableRocket) && !player.getEntityData().getBoolean("hbmcore_falling")) {
 				double rx = Math.abs(player.posX) % OrbitalStation.STATION_SIZE;
 				double rz = Math.abs(player.posZ) % OrbitalStation.STATION_SIZE;
 
@@ -1389,10 +1477,64 @@ public class ModEventHandler {
 				}
 
 				if(rx < minBuffer || rx > maxBuffer || rz < minBuffer || rz > maxBuffer) {
+					// [modpack] 标记坠落中，防止传送排队期间重复触发
+					player.getEntityData().setBoolean("hbmcore_falling", true);
 					OrbitalStation station = OrbitalStation.getStationFromPosition((int)player.posX, (int)player.posZ);
 					CelestialTeleporter.teleport(player, station.orbiting.dimensionId, rand.nextInt(SpaceConfig.maxProbeDistance * 2) - SpaceConfig.maxProbeDistance, 800, rand.nextInt(SpaceConfig.maxProbeDistance * 2) - SpaceConfig.maxProbeDistance, false);
 				}
 			}
+
+				// ==== [modpack] 出生维度：离开出生网格 → 掉进 Duna（参考原本近地轨道"掉出轨道"）
+				// hbmcore_falling 标记：传送排队期间跳过，防止每 tick 重复触发多次传送排队（性能卡顿根源）
+				// [modpack] ticksExisted > 20：重生后 1 秒宽限，防止重生定位（onPlayerRespawn 传回网格）未生效前误触发坠落
+				if(player.worldObj.provider instanceof WorldProviderSpawn && player.ticksExisted > 20 && !(player.ridingEntity instanceof EntityRideableRocket) && !player.getEntityData().getBoolean("hbmcore_falling")) {
+					// [perf] 临时监测：坠落检查耗时（阈值 1ms 才记）
+					long t0 = System.nanoTime();
+					double rx = Math.abs(player.posX) % OrbitalStation.STATION_SIZE;
+					double rz = Math.abs(player.posZ) % OrbitalStation.STATION_SIZE;
+
+					// [modpack] 坠落距离可配置（SpaceConfig.spawnFallDistance：距网格中心的坠落半径）
+					int minBuffer = OrbitalStation.STATION_SIZE / 2 - SpaceConfig.spawnFallDistance;
+					int maxBuffer = OrbitalStation.STATION_SIZE / 2 + SpaceConfig.spawnFallDistance;
+
+					int minWarning = minBuffer + OrbitalStation.WARNING_SIZE;
+					int maxWarning = maxBuffer - OrbitalStation.WARNING_SIZE;
+
+					if(player instanceof EntityPlayerMP && (rx < minWarning || rx > maxWarning || rz < minWarning || rz > maxWarning)) {
+						PacketDispatcher.wrapper.sendTo(new PlayerInformPacket(ChatBuilder.start("").nextTranslation("info.orbitfall").color(EnumChatFormatting.RED).flush(), ServerProxy.ID_GAS_HAZARD, 3000), (EntityPlayerMP) player);
+					}
+
+					if(rx < minBuffer || rx > maxBuffer || rz < minBuffer || rz > maxBuffer) {
+						// [modpack] 标记坠落中，防止传送排队期间重复触发
+						player.getEntityData().setBoolean("hbmcore_falling", true);
+						// 掉进 Duna：传送到火星高空（y=800），x/z 随机落点（裸降）
+						// [modpack] TODO: 乘坐降落仓降落到火星时才设降落点（SpawnTeleporter.setLanded）；当前"掉进"不算降落
+						// [modpack] 注：不能用 getChunkFromChunkCoords 同步预加载落点 chunk——Duna 地形生成慢，会卡死服务器主线程
+						int fallX = rand.nextInt(SpaceConfig.maxProbeDistance * 2) - SpaceConfig.maxProbeDistance;
+						int fallZ = rand.nextInt(SpaceConfig.maxProbeDistance * 2) - SpaceConfig.maxProbeDistance;
+						// [perf] 性能检测：记录落点与传送 tick，积累数据（落地耗时见下方落地检测）
+						player.getEntityData().setInteger("hbmcore_perf_fallTick", (int)player.worldObj.getTotalWorldTime());
+						player.getEntityData().setBoolean("hbmcore_perf_landed", false);
+						MainRegistry.logger.info("[perf] fall to Duna: target (" + fallX + ", " + fallZ + "), tick=" + player.worldObj.getTotalWorldTime());
+						CelestialTeleporter.teleport(player, SpaceConfig.dunaDimension, fallX, 800, fallZ, false);
+					}
+					long t1 = System.nanoTime();
+					if(t1 - t0 > 1_000_000) {
+						com.hbm.main.MainRegistry.logger.info("[perf] spawn fall-check took " + ((t1 - t0) / 1000000) + "ms");
+					}
+				}
+
+				// [perf] Duna 落地耗时检测（积累数据）：玩家落地（posY < 150 接近地表）时记录耗时
+				if(player.dimension == SpaceConfig.dunaDimension && player.posY < 150 && !player.getEntityData().getBoolean("hbmcore_perf_landed")) {
+					player.getEntityData().setBoolean("hbmcore_perf_landed", true);
+					int fallTick = player.getEntityData().getInteger("hbmcore_perf_fallTick");
+					MainRegistry.logger.info("[perf] landed Duna at (" + (int)player.posX + ", " + (int)player.posY + ", " + (int)player.posZ + "), fall_ticks=" + (player.worldObj.getTotalWorldTime() - fallTick));
+				}
+
+				// [modpack] 玩家已到目标维度（Duna / 主世界 kerbin）→ 清坠落标记（准备下次坠落）
+				if((player.dimension == SpaceConfig.dunaDimension || player.dimension == 0) && player.getEntityData().getBoolean("hbmcore_falling")) {
+					player.getEntityData().setBoolean("hbmcore_falling", false);
+				}
 
 			// keep Nether teleports localized
 			// this effectively turns the Nether into a shared pocket dimension, but disallows using it to travel between celestial bodies
@@ -1663,10 +1805,71 @@ public class ModEventHandler {
 	@SubscribeEvent
 	public void onPlayerClone(net.minecraftforge.event.entity.player.PlayerEvent.Clone event) {
 
+		// [modpack] 复制降落标记到新实体（ForgeData 在死亡重生时可能不保留，导致 hasLanded 丢失）
+		net.minecraft.nbt.NBTTagCompound oldData = event.original.getEntityData();
+		net.minecraft.nbt.NBTTagCompound newData = event.entityPlayer.getEntityData();
+		if(oldData.hasKey("hbmcore_hasLanded")) {
+			newData.setBoolean("hbmcore_hasLanded", oldData.getBoolean("hbmcore_hasLanded"));
+			newData.setInteger("hbmcore_landX", oldData.getInteger("hbmcore_landX"));
+			newData.setInteger("hbmcore_landY", oldData.getInteger("hbmcore_landY"));
+			newData.setInteger("hbmcore_landZ", oldData.getInteger("hbmcore_landZ"));
+		}
+
+		// ==== [modpack] 复制复活维度 + 网格标记（死亡重生后新实体保留）
+		// vanilla clonePlayer 不复制 ForgeData，全靠这里手动复制；否则 hbmcore_respawnDim 死后恒 0，
+		// resolveRespawnDimension 的"床所在维度"分支永久失效，coremod 接管位置也会判错维度
+		if(oldData.hasKey("hbmcore_respawnDim")) {
+			newData.setInteger("hbmcore_respawnDim", oldData.getInteger("hbmcore_respawnDim"));
+		}
+		if(oldData.hasKey("hbmcore_spawnGridX")) {
+			newData.setInteger("hbmcore_spawnGridX", oldData.getInteger("hbmcore_spawnGridX"));
+			newData.setInteger("hbmcore_spawnGridZ", oldData.getInteger("hbmcore_spawnGridZ"));
+		}
+
 		ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer();
 		HbmPlayerProps.getData(event.original).serialize(buf);
 		HbmPlayerProps.getData(event.entityPlayer).deserialize(buf);
 		buf.release();
+	}
+
+	// ==== [modpack] 盔甲槽死亡保留：重生灌回
+	// onDeath 注入点已把盔甲快照进 hbmcore_keepArmor 并置空（vanilla dropAllItems 不再掉盔甲）；
+	// 这里在重生 clonePlayer 末尾（wasDeath=true）把快照灌回新玩家盔甲槽
+	@SubscribeEvent
+	public void onPlayerCloneRestoreArmor(net.minecraftforge.event.entity.player.PlayerEvent.Clone event) {
+
+		if(!event.wasDeath) return;
+
+		net.minecraft.nbt.NBTTagCompound oldData = event.original.getEntityData();
+		if(!oldData.hasKey(HbmDeathDropHook.KEEP_ARMOR_TAG)) return;
+
+		net.minecraft.nbt.NBTTagList list = oldData.getTagList(HbmDeathDropHook.KEEP_ARMOR_TAG, 10);
+		net.minecraft.item.ItemStack[] armor = event.entityPlayer.inventory.armorInventory;
+		for(int i = 0; i < 4 && i < list.tagCount(); i++) {
+			armor[i] = net.minecraft.item.ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i));
+		}
+
+		// 消费 tag：新旧都清，避免残留导致重复恢复
+		oldData.removeTag(HbmDeathDropHook.KEEP_ARMOR_TAG);
+		event.entityPlayer.getEntityData().removeTag(HbmDeathDropHook.KEEP_ARMOR_TAG);
+	}
+
+	// ==== [modpack] 盔甲槽死亡保留：死了没重生就退出的边界
+	// 死亡时快照写进 ForgeData，若玩家未重生直接退出，登录时从残留 tag 找回盔甲
+	@SubscribeEvent
+	public void onPlayerLoginRestoreArmor(PlayerEvent.PlayerLoggedInEvent event) {
+
+		if(event.player.worldObj.isRemote) return;
+
+		net.minecraft.nbt.NBTTagCompound data = event.player.getEntityData();
+		if(!data.hasKey(HbmDeathDropHook.KEEP_ARMOR_TAG)) return;
+
+		net.minecraft.nbt.NBTTagList list = data.getTagList(HbmDeathDropHook.KEEP_ARMOR_TAG, 10);
+		net.minecraft.item.ItemStack[] armor = event.player.inventory.armorInventory;
+		for(int i = 0; i < 4 && i < list.tagCount(); i++) {
+			armor[i] = net.minecraft.item.ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i));
+		}
+		data.removeTag(HbmDeathDropHook.KEEP_ARMOR_TAG);
 	}
 
 	@SubscribeEvent

@@ -44,6 +44,13 @@ public class BlockOrbitalStation extends BlockDummyable implements IBlockSealabl
 	}
 
 	@Override
+	public float getBlockHardness(World world, int x, int y, int z) {
+		// ==== [modpack] SPAWN 维度接口不可破坏（硬度 -1 如基岩，挖掘进度恒为 0）
+		if(world.provider.dimensionId == SpaceConfig.spawnDimension) return -1.0F;
+		return super.getBlockHardness(world, x, y, z);
+	}
+
+	@Override
 	public int[] getDimensions() {
 		return new int[] {1, 0, 2, 2, 2, 2};
 	}
@@ -187,7 +194,8 @@ public class BlockOrbitalStation extends BlockDummyable implements IBlockSealabl
 			if(station.hasDocked) {
 				if(!station.hasRider) {
 					if(player.isSneaking()) {
-						if(player.getHeldItem() == null) {
+						// ==== [modpack] SPAWN 接口逃生舱禁取出 → 不显示"取出"提示（与 onBlockActivated 禁取出一致）
+						if(player.getHeldItem() == null && world.provider.dimensionId != SpaceConfig.spawnDimension) {
 							text.add(I18nUtil.resolveKey("station.removeRocket"));
 						}
 					} else {
@@ -213,6 +221,10 @@ public class BlockOrbitalStation extends BlockDummyable implements IBlockSealabl
 						text.add(I18nUtil.resolveKey("station.placeRocket"));
 					}
 					if(held.getItem() == ModItems.rp_capsule_20 || held.getItem() == ModItems.rp_pod_20) {
+						text.add(I18nUtil.resolveKey("station.placeRocket"));
+					}
+					// ==== [modpack] SPAWN 接口提示逃生舱可安装
+					if(world.provider.dimensionId == SpaceConfig.spawnDimension && held.getItem() == ModItems.escape_pod) {
 						text.add(I18nUtil.resolveKey("station.placeRocket"));
 					}
 				}

@@ -32,3 +32,17 @@
 
 # Changelog backup
 /changelog.bak
+
+# Claude / AI 工作产物（不入库）
+/_task*
+/_tmp*
+/CLAUDE.md
+/.claude/
+/docs/superpowers/
+/docs/modpack-dev-summary.md
+
+# 运行时依赖（环境约定，不入库）
+/libs/
+
+# 结构文件旧版备份（保留磁盘，不入库）
+/src/main/resources/assets/hbm/structures/*.bak*

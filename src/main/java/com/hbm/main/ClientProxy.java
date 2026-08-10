@@ -921,6 +921,9 @@ public class ClientProxy extends ServerProxy {
 			MinecraftForgeClient.registerItemRenderer(part.part, new ItemRenderMissilePart(part));
 		}
 
+		// ==== [modpack] 逃生舱物品复用着陆器（rp_capsule_20）的 3D 模型渲染（物品栏/手持/掉落均为 3D）
+		MinecraftForgeClient.registerItemRenderer(ModItems.escape_pod, new ItemRenderMissilePart(MissilePart.getPart(ModItems.rp_capsule_20)));
+
 		MinecraftForgeClient.registerItemRenderer(ModItems.missile_custom, new ItemRenderMissile());
 	}
 

@@ -63,15 +63,17 @@ public class WorldGeneratorDuna implements IWorldGenerator {
 		DungeonToolbox.generateOre(world, rand, i, j, 6, 10, 0, 16, ModBlocks.ore_basalt, 4, ModBlocks.basalt);
 
 
-		if(i == 0 && j == 0 && world.getWorldInfo().getTerrainType() == WorldTypeTeleport.martian) {
-			int x = 0;
-			int z = 0;
-			int y = world.getHeightValue(x, z) - 1;
-
-			Spotlight.disableOnGeneration = false;
-			StructureManager.martian.build(world, x, y, z);
-			Spotlight.disableOnGeneration = true;
-		}
+		// ==== [modpack] 删除火星初始基地：martian-base 不再在 Duna(0,0) 生成
+		// （martian 世界类型已在 WorldTypeTeleport.init() 注释掉，此块本就恒 false；显式注释便于恢复/借鉴）
+		// if(i == 0 && j == 0 && world.getWorldInfo().getTerrainType() == WorldTypeTeleport.martian) {
+		// 	int x = 0;
+		// 	int z = 0;
+		// 	int y = world.getHeightValue(x, z) - 1;
+		//
+		// 	Spotlight.disableOnGeneration = false;
+		// 	StructureManager.martian.build(world, x, y, z);
+		// 	Spotlight.disableOnGeneration = true;
+		// }
 
 		if(rand.nextInt(1234) == 0) {
 			int x = i + rand.nextInt(16);

@@ -247,7 +247,10 @@ public class SkyProviderCelestial extends IRenderHandler {
 
 			float blendAmount = hasAtmosphere ? MathHelper.clamp_float(1 - world.getSunBrightnessFactor(partialTicks), 0.25F, 1F) : 1F;
 
-			renderCelestials(partialTicks, world, mc, celestialProvider.metrics, solarAngle, null, planetTint, visibility, blendAmount, null, SolarSystem.MAX_APPARENT_SIZE_SURFACE);
+			// ==== [modpack] 出生维度是"轨道视角"（站在 Duna 轨道），用 ORBIT 渲染上限（160）复刻空间站到火星轨道的星球大小
+			// 原：renderCelestials(..., SolarSystem.MAX_APPARENT_SIZE_SURFACE);
+			float maxApparentSize = world.provider instanceof com.hbm.dim.spawn.WorldProviderSpawn ? SolarSystem.MAX_APPARENT_SIZE_ORBIT : SolarSystem.MAX_APPARENT_SIZE_SURFACE;
+			renderCelestials(partialTicks, world, mc, celestialProvider.metrics, solarAngle, null, planetTint, visibility, blendAmount, null, maxApparentSize);
 
 			GL11.glEnable(GL11.GL_BLEND);
 
@@ -921,6 +924,10 @@ public class SkyProviderCelestial extends IRenderHandler {
 
 			// Ignore self
 			if(metric.distance == 0)
+				continue;
+
+			// ==== [modpack] 跳过出生维度站（spawnBody，纹理是火星色），避免在任何天体天空显示"另一个 Duna"
+			if(metric.body == com.hbm.dim.CelestialBody.getBodyOrNull("spawn"))
 				continue;
 
 			boolean orbitingThis = metric.body == orbiting;

@@ -3,12 +3,14 @@ package com.hbm.dim;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+import com.hbm.config.SpaceConfig;
 import com.hbm.entity.missile.EntityRideableRocket;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.server.MinecraftServer;
@@ -59,6 +61,17 @@ public class CelestialTeleporter extends Teleporter {
 		}
 
 		entity.setPosition(x, y, z);
+
+		// ==== [modpack] 出生维度：玩家落位后面朝正东（yaw -90，正南为 0）
+		// 传送完成后 vanilla 会用实体当前 rotationYaw 下发客户端，这里直接改即可
+		if(entity instanceof EntityPlayer && targetServer.provider.dimensionId == SpaceConfig.spawnDimension) {
+			entity.rotationYaw = -90.0F;
+			// ==== [modpack] 清掉"脱离卡死"给的上抛速度，防止太空 0 重力下出生后飞起来
+			// 不能靠把玩家埋进方块抵消（会卡下半身在方块里），直接把 motion 清零
+			entity.motionX = 0;
+			entity.motionY = 0;
+			entity.motionZ = 0;
+		}
 	}
 
 	private void runTeleport() {
@@ -135,7 +148,13 @@ public class CelestialTeleporter extends Teleporter {
 
 	public static void runQueuedTeleport() {
 		CelestialTeleporter teleporter = queue.poll();
-		if(teleporter != null) teleporter.runTeleport();
+		if(teleporter != null) {
+			// [perf] 临时监测：跨维度传送耗时 + 队列积压
+			long t0 = System.nanoTime();
+			teleporter.runTeleport();
+			long t1 = System.nanoTime();
+			com.hbm.main.MainRegistry.logger.info("[perf] celestial teleport took " + ((t1 - t0) / 1000000) + "ms, queueBacklog=" + queue.size());
+		}
 	}
 
 	private static Queue<CelestialTeleporter> queue = new ArrayDeque<>();

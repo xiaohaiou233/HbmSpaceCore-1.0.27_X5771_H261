@@ -317,7 +317,8 @@ public class SolarSystem {
 		EVE("eve"),
 		IKE("ike"),
 		LAYTHE("laythe"),
-		TEKTO("tekto");
+		TEKTO("tekto"),
+		SPAWN("spawn");
 		//THATMO("thatmo"); sit this one out buddy :)
 
 		public String name;

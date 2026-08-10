@@ -966,7 +966,9 @@ public class EntityRideableRocket extends EntityMissileBaseNT implements ILookOv
 		}
 
 		RocketStruct rocket = getRocket();
-		if(rocket.stages.size() == 0 && worldObj.provider.dimensionId != SpaceConfig.orbitDimension && !isReusable()) return;
+		// ==== [modpack] 逃生舱（出生维度 SPAWN 裸舱）也要显示 HUD（目的地 / JUMP TO LAUNCH）
+		// 原门限：非 ORBIT 的不可复用裸舱不显示 HUD；出生维度是逃生舱专用，放行
+		if(rocket.stages.size() == 0 && worldObj.provider.dimensionId != SpaceConfig.orbitDimension && worldObj.provider.dimensionId != SpaceConfig.spawnDimension && !isReusable()) return;
 
 		EntityPlayer player = Minecraft.getMinecraft().thePlayer;
 

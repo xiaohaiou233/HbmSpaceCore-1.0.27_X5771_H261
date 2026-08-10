@@ -28,6 +28,10 @@ public class MapGenGreg extends MapGenCaves {
 	private double[] upperInterpolatedNoises;
 	private double[] depthNoises;
 
+	// [perf] P3：原 generateNoiseCavesNoise 每 chunk 传 null 让 WorldChunkManager
+	// 新建 BiomeGenBase[100]。提为字段复用（每次调用重新填充，无并发/重入）。
+	private BiomeGenBase[] biomesForGeneration;
+
 	@Override
 	public void func_151539_a(IChunkProvider c, World w, int chunkX, int chunkZ, Block[] blocks) {
 		if (worldObj != w) {
@@ -129,8 +133,10 @@ public class MapGenGreg extends MapGenCaves {
 		this.interpolationNoises = this.interpolationNoise.generateNoiseOctaves(this.interpolationNoises, cx, 0, cz, 5, 33, 5, 8.555150000000001D, 4.277575000000001D, 8.555150000000001D);
 		this.lowerInterpolatedNoises = this.field_147431_j.generateNoiseOctaves(this.lowerInterpolatedNoises, cx, 0, cz, 5, 33, 5, 684.412D, 684.412D, 684.412D);
 		this.upperInterpolatedNoises = this.field_147432_k.generateNoiseOctaves(this.upperInterpolatedNoises, cx, 0, cz, 5, 33, 5, 684.412D, 684.412D, 684.412D);
-		BiomeGenBase[] biomes = null;
-		biomes = this.worldObj.getWorldChunkManager().getBiomesForGeneration(biomes, cx - 2, cz - 2, 10, 10);
+		if (this.biomesForGeneration == null) {
+			this.biomesForGeneration = new BiomeGenBase[100]; // getBiomesForGeneration 固定填充 10×10=100 格
+		}
+		this.worldObj.getWorldChunkManager().getBiomesForGeneration(this.biomesForGeneration, cx - 2, cz - 2, 10, 10);
 		int i = 0, j = 0;
 
 		for (int x = 0; x < 5; ++x) {
@@ -140,11 +146,11 @@ public class MapGenGreg extends MapGenCaves {
 				float weight = 0.0F;
 				double lowestScaledDepth = 0;
 
-				BiomeGenBase biome0 = biomes[x + 2 + (z + 2) * 10];
+				BiomeGenBase biome0 = this.biomesForGeneration[x + 2 + (z + 2) * 10];
 				// We iterate the entire area to ensure we're not anywhere even near an ocean
 				for (int x1 = -2; x1 <= 2; ++x1) {
 					for (int z1 = -2; z1 <= 2; ++z1) {
-						BiomeGenBase biome = biomes[x + x1 + 2 + (z + z1 + 2) * 10];
+						BiomeGenBase biome = this.biomesForGeneration[x + x1 + 2 + (z + z1 + 2) * 10];
 						float depthHere = biome.rootHeight;
 						float scaleHere = biome.heightVariation;
 
