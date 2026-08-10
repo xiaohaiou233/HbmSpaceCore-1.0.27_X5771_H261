@@ -1,177 +1,61 @@
-# NTM: Space for Minecraft 1.7.10
+# HBMcore — HBM 航天版整合包核心模组
 
-Hi, i am memeing things into existence, dont mind me! im just the bent fork at the end of the table -JamesH_2
+> 私人整合包开发 fork：基于 [NTM: Space (1.7.10)](https://github.com/JameH2/Hbm-s-Nuclear-Tech-GIT) 的深度改造，把原版"行星旅行"改造成**太空生存整合包**。开发分支 `space-travel-twopointfive`。
 
-And I turn the memes into reality, see you in orbit! -Mellow
+## 玩法
 
-[NTM: Space on Modrinth](https://modrinth.com/mod/ntmspace)
+玩家在近地轨道**空间站出生维度（SPAWN）**诞生 → 乘坐**逃生舱**裸降到火星（Duna）→ 落地开始生存。出生点网格、逃生舱降落、死亡重生、进服护甲均由本 fork 深度定制（代码内 `// ==== [modpack]` 标记，详见 `docs/`）。
 
-[NTM: Space on CurseForge](https://www.curseforge.com/minecraft/mc-mods/ntm-space)
+## 上游
 
-[Official NTM Wiki](https://nucleartech.wiki/wiki/Main_Page)
+- [NTM: Space on Modrinth](https://modrinth.com/mod/ntmspace)
+- [NTM: Space on CurseForge](https://www.curseforge.com/minecraft/mc-mods/ntm-space)
+- [Official NTM Wiki](https://nucleartech.wiki/wiki/Main_Page)
+- [NTM: Space Discord](https://discord.gg/u6bKmGNYCq)
+- 上游仓库：https://github.com/JameH2/Hbm-s-Nuclear-Tech-GIT
 
-[NTM: Space Discord](https://discord.gg/u6bKmGNYCq)
+**本 fork 仅用于 1.7.10。**
 
-[Bobcat's Blog (the blag)](https://hbmmods.github.io/), you can find lengthy yapping, upcoming features and some secrets here.
+## 构建
 
-**This is for 1.7.10!** For 1.12, check out these projects:
+前置：JDK8 + Git。构建脚本相关配置（JDK 路径、代理、JVM 参数）见 `gradle.properties`。
 
-* NTM Community Edition (WarFactory): https://github.com/MisterNorwood/Hbm-s-Nuclear-Tech-CE/releases
-* NTM Extended Edition (Alcater): https://github.com/Alcatergit/Hbm-s-Nuclear-Tech-GIT/releases
-* NTM Reloaded: https://github.com/TheOriginalGolem/Hbm-s-Nuclear-Tech-GIT/releases
-
-For further ports, try:
-
-* NTM Remake on 1.18.2: https://codeberg.org/MartinTheDragon/Nuclear-Tech-Mod-Remake/releases
-* HBM Modernized on 1.20.1: https://github.com/Raptor324/HBM-Modernized/releases
-* NTM Neo on 1.21.1: https://github.com/ohiomannnn/HBMsNTM-NEO-EDITION/releases
-
-## Downloading pre-compiled versions from GitHub
-
-Simply navigate to "Releases" on the right side of the page, download links for the compiled JAR as well as the corresponding source code are under the "Assets" category below the changelog. Make sure to review all changelogs when updating!
-
-## Using in your project
-
-To include the mod as a dependency in a project of your own, you can adjust your Gradle buildscript according to the following example:
-
-```groovy
-repositories {
-		maven {
-				name "NTM Releases"
-				url "https://maven.ntmr.dev/releases"
-		}
-}
-
-dependencies {
-		def ntmBuildNumber = "5687" // Change this value according to the release you wish to use
-
-		implementation "com.hbm:HBM-NTM:1.0.27_X${ntmBuildNumber}:dev"
-		compileOnly "com.hbm:HBM-NTM:1.0.27_X${ntmBuildNumber}:src"
-}
+```bash
+./gradlew build
 ```
 
-## Building from source
+- 产物：`build/libs/HBMcore-<version>.jar`（**已 reobf 为 SRG，可直接进整合包**）
+- ⚠️ 勿用 `./gradlew jar`——会退回 MCP 名，整合包加载失败
+- reobf 后自动补 ZIP 目录条目（`build.gradle` 的 `reobf.doLast`），产物无需再手动修复
 
-Tired of waiting until the next version comes out? Here is a tutorial on how to compile the very newest version yourself:
-Please note that these installation instructions are assuming you're running Microsoft Windows operating system. Linux users should know what to do by looking at the same guide.
+开发快速验证：`./gradlew runClient`。运行时依赖 GTNH 版 codechicken 全家桶 + WAILA（deobf jar 放 `libs/gtnh-dev/`，**环境约定，不入库**）。
 
- 1. Make sure you have JDK8 installed. If not, download it from [adoptium.net](https://adoptium.net/temurin/releases?version=8)
- 2. If you don't have git installed, download&install it from [here](https://git-scm.com/downloads).
- 3. Open up "Git Bash":
-    * Press Windows Button, type "Git Bash" and press ENTER
- 4. Enter the directory where you would like the sources to be (advanced users can use any directory)
- ```bash
-     cd $HOME/Downloads
- ```
- 5. Download the source code:
- ```bash
-     git clone https://github.com/JameH2/Hbm-s-Nuclear-Tech-GIT.git
- ```
- 4. Enter the source code directory
- ```bash
-     cd Hbm-s-Nuclear-Tech-GIT
- ```
- 5. Build the mod
- ```bash
-     ./gradlew build
- ```
- 6. Locate the mod file.
-    1. Open up your file explorer.
-    2. Navigate to the location where you downloaded the sources.
-       * If you exactly followed step 1, it should be `C:/Users/%USER%/Downloads`.
-    3. Enter the downloaded source tree.
-    4. Navigate to `build/libs`.
-    5. Grab the "HBM-NTM-<version>.jar" one.
-        * This is your mod file. You can install it like any other mod by putting it into your mods directory.
+## 文档索引
 
-## Contributing
-If you want to make some changes to the mod, follow this guide:
-1. Follow steps 1-2 from *Building from source* section
-2. Create a directory where the repository will reside, using a name that is not "Hbm-s-Nuclear-Tech-GIT"
-3. Download the forge src from [here](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.7.10.html) and extract it into the directory.
-4. Download the source code:
-  * Using Git Bash, enter wherever your directory is located:
-```bash
-    cd $HOME/Downloads
-```
-   * Download the source code:
-```bash
-    git clone https://github.com/JameH2/Hbm-s-Nuclear-Tech-GIT.git
- ```
-   * Move or copy every file within the new folder into your directory, making sure to overwrite any files.
-   * Feel free to delete the remaining folder and rename your directory (such as "Hbm-s-Nuclear-Tech-GIT")
-5. Enter the source directory
-```bash
-    cd Hbm-s-Nuclear-Tech-GIT
-```
-6. Setup forge decompilation workspace
-```bash
-    ./gradlew setupDecompWorkspace
-```
-### Necessary for Eclipse users
-7. Generate eclipse files
-```bash
-    ./gradlew eclipse
-```
-8. Switch to the **eclipse** folder inside your directory as a workspace.
-9. If necessary, make sure that Eclipse is using the JDK8.
-   * On Linux, enter Windows>Preferences>Java>Installed JREs.
-      * Click search to navigate to /usr/lib/jvm and open it. Select the Java 8 JDK (e.g., java-8-openjdk).
-      * Afterwards, enter Execution Environment, select JavaSE-1.8, and select the jre listed as a **[perfect match]**
-   * On Windows, you may need to set your JAVA_HOME.
-      * Search for Environment Variables and click Edit the System Environment Variables.
-      * Click Environment Variables. Click new under System Variables.
-      * Enter **JAVA_HOME** under Variable Name and enter the path to your JDK 8 under Variable Value (e.g., C:\Program-Files\Java\jdk1.8.0_102).
-      * In Eclipse, now enter Windows>Preferences>Java>Installed JREs.
-      * Click **Add Standard VM**; in the JRE home, navigate to the directory where the JDK is installed, then click finish and select it.
-10. Code!
+| 文档 | 内容 |
+|---|---|
+| `docs/coremod-obfuscation-fix.md` | coremod 在 prod 混淆下的 deobf 方案 |
+| `docs/neifix-integration.md` | NeiFix（NEI 全屏屏蔽修复）集成 |
+| `docs/perf-2026-08-08-multiplayer-teleport-lag.md` | 多人跨维度传送卡顿定位与修复 |
+| `docs/spark-usage.md` | Spark 性能分析用法（定位掉帧/卡顿） |
+| `docs/research/` | 研究存档：传送卡顿 chunkload、生成器分配、vanilla 反编译 |
+| `tools/README.md` | 维护脚本：NBT 解析 / 结构对比 / 模型分析 |
 
-## Contributing animations
-Weapon animations in NTM are stored in JSON files, which are used alongside OBJ models to produce high quality animations with reasonable filesizes. Import/Export Blender addons are available for versions 2.79, 3.2, and 4.0 in `tools`, and they should function reasonably well in newer versions as well. See the comments in the header of the export scripts for usage instructions.
+> `docs/modpack-dev-summary.md`、`docs/superpowers/` 是本地开发过程记录，不入库（gitignore）。
 
-## Compatibility notice
-NTM has certain behaviors intended to fix vanilla code or to increase compatibility in certain cases where it otherwise would not be possible. These behaviors have the potential of not playing well with other mods, and while no such cases are currently known, here's a list of them.
+## 开发约定
 
-### Thermos
-Thermos servers (along with its forks such as Crucible) have a "performance" feature that causes all tile entity ticking to slow down if there's no player present in the same chunk. For obvious reasons, this will heavily impact machines and cause phantom issues that, not having knowledge of this "performance" feature, are near impossible to diagnose. By default, NTM will crash on servers running the Thermos base code and print a lengthy message informing server owners about this "performance" feature as well as how to fix the issues it causes. The error message is printed in plain English on the top of the crash log, failure to read (as well as understand) it will leave the server inoperable.
+- **改动标记**：修改原版代码时保留原文注释，新增/改动用 `// ==== [modpack]`；性能日志用 `[perf]`
+- **NBT 前缀**：自定义 tag 一律 `hbmcore_`（`hbmtw` 是另一个模组的前缀，勿混用）
+- **coremod**：`com.hbm.core`（HbmLoadingPlugin + 各 Transformer），jar manifest 声明 `FMLCorePlugin`；prod 下 transformer 先收到 notch 字节，须先 `FMLRemappingAdapter` 转 SRG 再匹配
+- **兼容修复**：`com.hbm.compat`（AeFix / WCTFix / NeiFix），由 MainRegistry.PreLoad 启动注入配置
+- **配置**：`SpaceConfig`（键前缀如 `1.95_`、`1.96_`、`1.97_`）
+- **不入库**（gitignore）：`libs/`（环境 jar）、`_tmp*`、`.claude/`、结构文件 `*.bak*`
 
-Worldgen with Thermos and its forks is broken, and will cause structures to spawn in the wrong dimensions. This is only the tip of the iceberg in terms of issues, and as Thermos/Crucible is effectively unmaintained, we recommend finding mod-based solutions instead of continuing to rely on Bukkit plugins.
+## 部署
 
-### Shaders
-Shaders (loaded by either Optifine, Iris or otherwise) will in all likelihood break when a gun is held. This is because guns need to skip vanilla's first person item setup for the rendering, however shaders apparently use the setup step for setting certain GL states, and skipping that will break rendering. [Shader Fixer](https://modrinth.com/mod/shader-fixer) is a mod with various fixes, among which is explicit compatibility for NTM's guns.
+把 `gradlew build` 产出的 `HBMcore-<version>.jar` 放进整合包实例的 `mods/` 目录即可。NEI/WAILA 是运行时辅助（GTNH 版），**不是编译依赖**（build.gradle 仅 compileOnly 原版 API）。
 
-### Optifine
-One of the most common "performance" mods on 1.7.10, Optifine, achieves an increase in performance by breaking small things in spots that are usually hard to notice, although this can cause severe issues with NTM. A short list of problems, along with some solutions, follows:
-* Get rid of Optifine and use one of the many [other, less intrusive performance mods](https://gist.github.com/makamys/7cb74cd71d93a4332d2891db2624e17c).
-* Blocks with connected textures may become invisible. This can be fixed by toggling triangulation (I do not know what or where this setting is, I just have been told that it exists and that it can fix the problem) or multicore chunk rendering (same here).
-* Entity "optimization" has a tendency to break chunkloading, this is especially noticeable with missiles which rely heavily on chunkloading to work, causing them to freeze mid-air. It's unclear what setting might fix this, and analysis of Optifine's source code (or rather, lack thereof) has not proven useful either.
-   * This issue will also cause orbital stations to never reach orbit, I can't emphasize enough how much pain and misery this "performance" mod will cause you, use Angelica instead.
+## License
 
-### Angelica
-In older versions, Angelica caused issues regarding model rendering, often times making 3D models transparent. Ever since the switch to VBOs, models work fine. Another issue was blocks with connected textures not rendering at all, but this too was fixed, meaning as of time of writing there are no major incompatibilities known with Angelica. However there a few minor issues that persist, but those can be fixed:
-* Often times when making a new world, all items appear as white squares. Somehow, scrolling though the NEI pages fixes this permanently
-* Reeds will render weirdly, this is an incompatibility with the "Compact Vertex Format" feature. Disabling it will make reeds look normal. Alternatively, reed rendering can be disabled by using `/ntmclient set RENDER_REEDS false`, which works around the issue by not rendering the underwater portion of reeds at all.
-
-### Skyboxes
-NTM: Space provides a considerable amount of information to players via the skybox (destruction state, player building density via lights, currently orbiting satellites, to name just a few things!). Due to this, our skybox can not be disabled via config.
-
-### Custom world provider
-A world provider is a piece of code that minecraft can load to determine certain aspects of how the world should be handled, like light levels, sky color, day/night cycle, etc. Our celestial handling requires that we replace the overworld provider in order to show atmospheric effects, render all celestial objects in the skybox correctly, run eclipse effects, etc. This causes a conflict with Hardcore Darkness by default, since our fog colour is calculated differently, which can be resolved by enabling the config option `1.44_hardcoreDarkness`.
-
-### Stat re-registering
-An often overlooked aspect of Minecraft is its stats, the game keeps track of how many of an item were crafted, placed, broken, etc. By default, Minecraft can only handle vanilla items, modded items would not show up in the stats window. Forge does little to fix this, and since NTM has to keep track of certain things (such as the use of an acidizer for spawning Mask Man) it will run its own code which re-registers all stats for all modded items. In the event that re-registering causes issues, or another mod already does this better already, this behavior can be disabled with the config option `1.33_enableStatReRegistering`.
-
-### Keybind overlap
-An often annoying aspect of modded Minecraft is its keybinds. Even though multiple binds can be assigned the same key, all but one will show up as "conflicting" and only the non-conflicting one will work. Which one this is is usually arbitrary, and there is no reason to have such limitation. Often times keybinds are only applicable in certain scenarios, and a commonly found degree of overlap is within reason. Therefore, NTM will run its own key handling code which allows conflicting keybinds to work. If there should be any issues with this behavior, it can be disabled with the config option `1.34_enableKeybindOverlap`.
-
-### Render distance capping
-There is a common crash caused by Minecraft's render distance slider going out of bounds, this usually happens when uninstalling a mod that extends the render distance (like Optifine) or when downgrading the Minecraft version (newer versions have higher render distance caps). To prevent crashes, the mod will attempt to decrease the render distance if it's above 16 unless Optifine is installed. If this behavior is not desired (for example, because another mod that allows higher render distance is being used), it can be disabled with the config option `1.25_enableRenderDistCheck`.
-
-### Log spam caused by ComparableStack
-In some modpacks (exact mods needed to replicate this are unknown), it's possible that invalid registered items may cause problems for NEI handlers. To prevent crashes, the ComparableStack class used to represent stacks will default to a safe registered item, and print a log message. In certain situations, this may cause dozens of errors to be printed at once, potentially even lagging the game. If that happens, the log message (but not the error handling) can be disabled with the config option `1.28_enableSilentCompStackErrors`.
-
-### Sound system limit
-By default, the sound system only allows a limited amount of sounds to run at once (28 regular sounds and 4 streaming sounds), this causes issues when there's many machines running at once, since their looped sounds will constantly interrupt each other, causing them to immediately restart, which in some isolated cases has proven to cause massive lagspikes. To prevent this, NTM will increase the sound limit to 1000 regular sounds and 50 streaming sounds, this can be disabled with the config option `1.39_enableSoundExtension`.
-
-# License
-This software is licensed under the GNU Lesser General Public License version 3. In short: This software is free, you may run the software freely, create modified versions, distribute this software and distribute modified versions, as long as the modified software too has a free software license (with an exception for linking to this software, as stated by the "Lesser" part of the LGPL, where this may not be required). You win this round, Stallman. The full license can be found in the `LICENSE` and `LICENSE.LESSER` files.
+GNU Lesser General Public License version 3。完整文本见 `LICENSE` 与 `LICENSE.LESSER`。
